@@ -1,184 +1,90 @@
-# Linux Download Manager — IDM alternative for Linux
+# Linux Download Manager
 
-<p align="center">
-  <img src="src-tauri/icons/icon.png" width="128" alt="Linux Download Manager icon">
-</p>
+A high-performance, full-featured download manager for Linux built with Rust and Tauri. Designed as a modern, native alternative to Internet Download Manager (IDM) with native browser integration and intelligent media capture.
 
-<p align="center">
-  <strong>Fast, IDM-inspired download manager for Arch, Ubuntu, Fedora. Built with Rust + Tauri. YouTube, Twitter/X, Reddit, TikTok support via yt-dlp.</strong>
-</p>
+## Key Features
 
-<p align="center">
-  <a href="#installation"><b>Install from source</b></a>
-  &nbsp;·&nbsp;
-  <a href="#troubleshooting">Troubleshooting</a>
-</p>
+- **Multi-Part Accelerated Downloads**: Splits files into multi-threaded concurrent chunks using HTTP range requests for maximum network throughput.
+- **Robust Pause & Resume**: Safely pause, resume, and recover interrupted downloads without restarting from zero.
+- **Light & Dark Themes**:
+  - **Low-Glare Paper Light Theme**: Soft, warm off-white tones specifically designed for eye-comfort and light sensitivity.
+  - **Modern Dark Theme**: Clean, low-contrast dark interface for low-light environments.
+  - **System Theme Sync**: Automatically adapts to your desktop environment's color scheme with persistent user preferences.
+- **Browser Extension Integration**:
+  - One-click downloads directly from Chromium-based browsers (Google Chrome, Brave, Chromium, Microsoft Edge, Vivaldi).
+  - Native messaging bridge communicating directly with the desktop engine.
+- **Video & Media Sniffing**:
+  - Downloads video and audio from YouTube, Twitter/X, Reddit, TikTok, and other platforms via `yt-dlp` and `ffmpeg`.
+  - Floating in-page media download button for instant media detection.
+- **Bandwidth Management & Queueing**:
+  - Configurable global and per-download speed limits (KB/s).
+  - Maximum concurrent active downloads queue with automatic job scheduling.
+- **Integrity Verification**: Checksum validation supporting MD5, SHA-1, and SHA-256.
+- **Desktop Integration**: Native notifications, system tray icon, and `.desktop` application menu launcher.
 
-<p align="center">
-  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg">
-  <img alt="Platform: Linux" src="https://img.shields.io/badge/platform-Linux-1f6feb.svg">
-  <img alt="Built with Rust" src="https://img.shields.io/badge/built%20with-Rust-orange.svg">
-</p>
+## Requirements
 
-<details>
-<summary>Türkçe açıklama</summary>
+The application runs on modern Linux distributions (Arch Linux / CachyOS, Ubuntu / Debian, Fedora).
 
-**Linux için IDM tarzı indirme yöneticisi.** Rust + Tauri ile yazıldı, Chromium tarayıcı eklentisi üzerinden çalışır. YouTube, Twitter, Reddit, TikTok video indirme desteği `yt-dlp` ile. Arch, CachyOS, Ubuntu ve Fedora üzerinde kaynak koddan kurulabilir. Açık kaynak, ücretsiz, **IDM alternatifi**.
+### Build & Runtime Dependencies
 
-Tek komutla kurulum:
-```bash
-curl -fsSL https://raw.githubusercontent.com/ekremx25/linux-download-manager/main/install.sh | bash
-```
-
-</details>
-
----
-
-## What is this?
-
-A lightweight, fast download manager for **Linux** — think **IDM (Internet Download Manager) alternative** for Arch, Ubuntu, Fedora. Integrates directly into Chromium-based browsers (Chrome, Brave, Edge, Vivaldi) through a native messaging bridge and an extension, and lets you download videos from YouTube, Twitter/X, Reddit, TikTok and ~1000 more sites through `yt-dlp` with a single click.
-
-**Why this exists:** Linux never got an official IDM port, and most download-manager alternatives are either abandoned, require Wine, or don't integrate with the browser. This one does — a Rust binary + a Chromium extension + a Tauri GUI, installed for the current user from source.
-
-## Features
-
-### Video Download Support
-| Platform | Quality Picker | Auto Audio | Download Button |
-|----------|:---:|:---:|:---:|
-| **YouTube** | Yes (360p-4K) | Yes | Player overlay |
-| **Twitter/X** | Yes | Yes | Inline on tweets |
-| **Reddit** | - | Yes | Above video posts |
-
-### Core Features
-- **Multi-segment downloads** - Up to 4 parallel segments for faster downloads
-- **Pause / Resume / Cancel** - Full download control
-- **Bandwidth throttling** - Per-download and global speed limits
-- **Scheduled downloads** - Set a time, download starts automatically
-- **SHA-256 verification** - Optional checksum validation
-- **Queue management** - Configurable concurrent download limit (1-10)
-- **Download history** - SQLite-backed, persistent across restarts
-
-### Desktop Integration
-- **System tray** - Runs in background, click to show/hide
-- **Close to tray** - Window close minimizes to tray instead of quitting
-- **Desktop notifications** - Download complete/failed alerts
-- **Browser integration** - Chromium extension auto-captures downloads
-- **Generic video capture** - Detects direct video, HLS and DASH streams on other websites and falls back to `yt-dlp` for supported pages
-
-### Browser Extension
-- **Inline download buttons** on YouTube, Twitter, Reddit videos
-- **Quality picker** - Choose resolution before downloading
-- **Auto-intercept** - Captures browser downloads from supported sites
-- **Media detection** - Detects video/audio streams on any page
-
-## Screenshots
-
-### Main Window
-Dark-themed UI with download list, progress bars, speed/ETA indicators.
-
-### Browser Integration
-LDM button appears directly on video players - one click to download.
+- **Rust & Cargo** (1.75+)
+- **WebKit2GTK** (`webkit2gtk-4.1`)
+- **GTK 3** (`gtk+-3.0`)
+- **libsoup 3** (`libsoup-3.0`)
+- **yt-dlp** (for social media and video stream downloading)
+- **ffmpeg** (for video and audio stream muxing)
+- **Node.js** or **Deno** (used by `yt-dlp` for modern stream signature extraction)
 
 ## Installation
 
-### System Requirements
-- **OS**: Linux (x86_64)
-- **Browser**: Google Chrome, Chromium, Brave, Edge, or Vivaldi
-- **ffmpeg**: Required for HLS/DASH streams
-  ```bash
-  # Arch Linux / CachyOS
-  sudo pacman -S ffmpeg
-
-  # Ubuntu/Debian
-  sudo apt install ffmpeg
-
-  # Fedora
-  sudo dnf install ffmpeg    # RPM Fusion, or use Fedora's ffmpeg-free
-  ```
-
-### Install from Source
+Run the automated installer from the repository root:
 
 ```bash
-# Clone
-git clone https://github.com/ekremx25/linux-download-manager.git
-cd linux-download-manager
-
-# Install for the current user (Fedora, Arch, CachyOS, Debian/Ubuntu)
 ./install.sh
 ```
 
-The installer checks Rust and Tauri's WebKitGTK build libraries, installs missing packages with `dnf`, `pacman`, or `apt` using `sudo`, builds the app, and installs the browser bridge. On Fedora, `ffmpeg-free` is used if RPM Fusion's `ffmpeg` package is unavailable. On Arch and CachyOS, the same `pacman` packages are used. Loading the unpacked extension in the browser remains a one-time manual step.
+The installer will:
+1. Compile the optimized release binary.
+2. Install the executable to `~/.local/bin/linux-download-manager`.
+3. Set up the background native host bridge in `~/.local/share/linux-download-manager/bin/`.
+4. Register the desktop launcher in `~/.local/share/applications/`.
+5. Prepare the browser extension in `~/Documents/Linux Download Manager Extension`.
+6. Configure native messaging manifests for installed Chromium browsers.
 
-To load the browser extension, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `~/Documents/Linux Download Manager Extension/`.
+### Running the App
 
-## How It Works
+- **From App Menu**: Search for **Linux Download Manager** in your desktop application launcher.
+- **From Terminal**:
+  ```bash
+  linux-download-manager
+  ```
 
-```
-Browser Extension  →  Native Host  →  App (Rust/Tauri)
-     (JS)              (stdin/stdout)      ↓
-                                      yt-dlp / ffmpeg / HTTP
-                                           ↓
-                                      ~/Downloads/
-```
+## Browser Extension Setup
 
-1. **Browser extension** detects video streams and adds download buttons
-2. When clicked, sends URL + page info to the **native messaging host**
-3. Native host writes request to **inbox directory**
-4. **App** polls inbox, queues download, uses **yt-dlp** (for social media) or **direct HTTP** (for regular files)
-5. Downloads with progress tracking, speed calculation, ETA
+To enable browser download interception and video detection:
 
-## Tech Stack
+1. Open your browser's extensions page (`chrome://extensions` or `brave://extensions`).
+2. Enable **Developer mode** (toggle in the top-right corner).
+3. Click **Load unpacked**.
+4. Select the folder:
+   ```
+   ~/Documents/Linux Download Manager Extension
+   ```
+5. Pin the extension to your toolbar for easy access.
 
-| Component | Technology |
-|-----------|-----------|
-| Backend | Rust |
-| Desktop Framework | Tauri 2 |
-| Database | SQLite (rusqlite) |
-| HTTP Client | reqwest (async streaming) |
-| Video Download | yt-dlp + ffmpeg |
-| Browser Extension | Manifest V3 (Chromium) |
-| Frontend | Vanilla HTML/CSS/JS |
-| Packaging | Source installer |
+## Development
 
-## Project Structure
+To run the application locally in development mode with live inspection:
 
-```
-├── browser/chromium/        # Browser extension
-│   ├── manifest.json
-│   ├── service-worker.js    # Background script
-│   ├── content-script.js    # Page injection (buttons, overlays)
-│   └── content-style.css
-├── src-tauri/
-│   ├── src/
-│   │   ├── app.rs           # App state, queue management
-│   │   ├── download/mod.rs  # Download engine (HTTP, HLS, yt-dlp)
-│   │   ├── commands.rs      # Tauri IPC commands
-│   │   ├── browser.rs       # Native messaging inbox
-│   │   ├── jobs.rs          # Job queue processing
-│   │   ├── storage/mod.rs   # SQLite persistence
-│   │   ├── platform.rs      # Linux paths, first-run setup
-│   │   └── lib.rs           # Tray menu, window management
-│   └── tauri.conf.json
-└── ui/                      # Frontend
-    ├── index.html
-    ├── main.js
-    └── styles.css
+```bash
+./dev.sh
 ```
 
-## Configuration
+## Uninstallation
 
-Settings are accessible from the app UI:
+To remove the application, desktop entry, and native messaging configuration:
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Download directory | `~/Downloads` | Where files are saved |
-| Max concurrent downloads | 3 | Parallel download limit |
-| Bandwidth limit | Unlimited | Global speed cap (KB/s) |
-
-## License
-
-MIT
-
-## Credits
-
-Built with [Tauri](https://tauri.app/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and [ffmpeg](https://ffmpeg.org/).
+```bash
+./uninstall.sh
+```
