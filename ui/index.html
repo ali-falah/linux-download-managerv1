@@ -462,6 +462,18 @@
 
                 <div class="settings-card">
                     <div class="settings-card-title">Browser Extension</div>
+                    <div class="settings-tabs" role="tablist" aria-label="Browser extension settings">
+                        <button type="button" class="settings-tab active" data-extension-tab="download">Download behavior</button>
+                        <button type="button" class="settings-tab" data-extension-tab="hidden-sites">Hidden sites</button>
+                    </div>
+                    <div id="extension-download-panel" class="extension-settings-panel">
+                    <div class="setting-item">
+                        <div class="setting-text">
+                            <div class="setting-name">Show download details for each browser download</div>
+                            <div class="setting-desc">Review the file and edit its save location before it starts.</div>
+                        </div>
+                        <input type="checkbox" id="settings-ask-browser-location" checked>
+                    </div>
                     <div class="setting-item">
                         <div class="setting-text">
                             <div class="setting-name">Chromium Extension Folder</div>
@@ -471,12 +483,57 @@
                             <button id="btn-open-ext-folder" class="btn btn-secondary btn-sm">Open Folder</button>
                         </div>
                     </div>
+                    </div>
+                    <div id="extension-hidden-sites-panel" class="extension-settings-panel" hidden>
+                        <p class="setting-desc">Download buttons are hidden on these sites. Choose “Show on site” to restore a button, then refresh that site.</p>
+                        <div id="hidden-sites-list" class="hidden-sites-list"></div>
+                        <div class="hidden-site-add">
+                            <input id="hidden-site-input" type="text" class="input-text" placeholder="example.com or https://example.com">
+                            <button id="hidden-site-add-btn" class="btn btn-secondary">Hide site</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="modal-footer">
                 <button id="settings-cancel-btn" class="btn btn-ghost">Cancel</button>
                 <button id="save-settings" class="btn btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="browser-download-modal" class="modal-backdrop" hidden>
+        <div class="modal-window">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon-badge">↓</div>
+                    <div>
+                        <h2 class="modal-title">Download File Info</h2>
+                        <div class="modal-subtitle">Review the download and choose where to save it</div>
+                    </div>
+                </div>
+                <button id="browser-download-close" class="btn btn-ghost btn-icon-only" title="Cancel">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="browser-download-url">URL</label>
+                    <input id="browser-download-url" class="input-text mono" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="browser-download-location">Save to</label>
+                    <div class="browser-download-location-picker">
+                        <input id="browser-download-location" class="input-text mono" type="text" readonly>
+                        <button id="browser-download-browse" class="btn btn-secondary" type="button">Browse…</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="browser-download-filename">File</label>
+                    <input id="browser-download-filename" class="input-text" readonly>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="browser-download-cancel" class="btn btn-ghost">Cancel</button>
+                <button id="browser-download-start" class="btn btn-primary">Start Download</button>
             </div>
         </div>
     </div>

@@ -1,4 +1,5 @@
 use crate::app::{AppState, QueuedDownload};
+use crate::browser::BrowserDownloadRequest;
 use crate::download::{DownloadMetadata, DownloadRecord};
 use crate::jobs::{DownloadJobRequest, queue_download_request};
 use serde::Serialize;
@@ -10,6 +11,13 @@ pub struct AppSettings {
     pub default_download_dir: String,
     pub max_concurrent_downloads: usize,
     pub default_bandwidth_limit_kbps: u64,
+    pub ask_browser_download_location: bool,
+    pub hidden_sites: Vec<String>,
+}
+
+fn hidden_browser_sites(state: &AppState) -> Vec<String> {
+    state.storage.get_setting("hidden_browser_sites").ok().flatten()
+        .and_then(|value| serde_json::from_str(&value).ok()).unwrap_or_default()
 }
 
 #[tauri::command]
@@ -69,11 +77,45 @@ pub async fn start_download(
 }
 
 #[tauri::command]
+pub async fn start_browser_download(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+    request: BrowserDownloadRequest,
+    save_dir: String,
+) -> Result<DownloadRecord, String> {
+    queue_download_request(
+        &app_handle,
+        &state,
+        DownloadJobRequest {
+            url: request.url,
+            fallback_urls: request.fallback_urls,
+            audio_url: request.audio_url,
+            source_page_url: request.source_page_url,
+            http_headers: request.http_headers,
+            save_dir: Some(save_dir),
+            expected_checksum: request.expected_checksum,
+            scheduled_at: request.scheduled_at,
+            bandwidth_limit_kbps: request.bandwidth_limit_kbps,
+            format: request.format,
+            source_title: request.source_title,
+            force_ytdlp: request.force_ytdlp,
+            stream_manifest: request.stream_manifest,
+        },
+    )
+    .await
+}
+
+#[tauri::command]
 pub async fn pick_save_directory(
     app_handle: tauri::AppHandle,
+    initial_dir: Option<String>,
 ) -> Result<Option<String>, String> {
     let dialog = tauri_plugin_dialog::DialogExt::dialog(&app_handle);
-    let result = dialog.file().blocking_pick_folder();
+    let mut picker = dialog.file();
+    if let Some(path) = initial_dir {
+        picker = picker.set_directory(path);
+    }
+    let result = picker.blocking_pick_folder();
     Ok(result.map(|path| path.to_string()))
 }
 
@@ -83,6 +125,8 @@ pub async fn app_settings(state: State<'_, AppState>) -> Result<AppSettings, Str
         default_download_dir: state.default_download_dir.display().to_string(),
         max_concurrent_downloads: state.max_concurrent_downloads(),
         default_bandwidth_limit_kbps: state.default_bandwidth_limit_kbps().unwrap_or(0),
+        ask_browser_download_location: state.storage.get_setting("ask_browser_download_location")?.as_deref() != Some("false"),
+        hidden_sites: hidden_browser_sites(&state),
     })
 }
 
@@ -91,6 +135,8 @@ pub async fn update_app_settings(
     state: State<'_, AppState>,
     max_concurrent_downloads: Option<usize>,
     default_bandwidth_limit_kbps: Option<u64>,
+    ask_browser_download_location: Option<bool>,
+    hidden_sites: Option<Vec<String>>,
 ) -> Result<AppSettings, String> {
     if let Some(value) = max_concurrent_downloads {
         if value == 0 || value > 10 {
@@ -102,11 +148,19 @@ pub async fn update_app_settings(
     if let Some(value) = default_bandwidth_limit_kbps {
         state.set_default_bandwidth_limit_kbps(if value == 0 { None } else { Some(value) });
     }
+    if let Some(value) = ask_browser_download_location {
+        state.storage.set_setting("ask_browser_download_location", if value { "true" } else { "false" })?;
+    }
+    if let Some(sites) = hidden_sites {
+        state.storage.set_setting("hidden_browser_sites", &serde_json::to_string(&sites).map_err(|error| error.to_string())?)?;
+    }
 
     Ok(AppSettings {
         default_download_dir: state.default_download_dir.display().to_string(),
         max_concurrent_downloads: state.max_concurrent_downloads(),
         default_bandwidth_limit_kbps: state.default_bandwidth_limit_kbps().unwrap_or(0),
+        ask_browser_download_location: state.storage.get_setting("ask_browser_download_location")?.as_deref() != Some("false"),
+        hidden_sites: hidden_browser_sites(&state),
     })
 }
 

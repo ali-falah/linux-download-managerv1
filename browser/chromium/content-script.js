@@ -67,6 +67,7 @@ let periodicRefreshHandle = null;
 let pageObserver = null;
 const playerManifests = new Set();
 let extensionDisconnected = false;
+let hiddenSitesForPage = [];
 
 function disconnectExtension() {
   if (extensionDisconnected) return;
@@ -103,7 +104,12 @@ function sendExtensionMessage(message, callback) {
   }
 }
 
-bootstrap();
+sendExtensionMessage({ type: "sync-hidden-sites" }, (response) => {
+  hiddenSitesForPage = response?.hiddenSites ?? [];
+  const hostname = window.location.hostname.toLowerCase();
+  const hidden = hiddenSitesForPage.some((site) => hostname === site || hostname.endsWith(`.${site}`));
+  if (!hidden) bootstrap();
+});
 
 function isExcludedHost(hostname) {
   return /(^|\.)(whatsapp\.com|whatsapp\.net)$/i.test(hostname);
@@ -147,6 +153,8 @@ function bootstrap() {
   refreshRecentMediaCandidates();
   scheduleMediaOverlayRefresh();
   startPeriodicRefresh();
+  enableButtonDragging();
+  installSiteHideOption();
 
   document.addEventListener("pointerover", handlePointerOver, true);
   document.addEventListener("pointermove", handlePointerOver, true);
@@ -172,6 +180,91 @@ function bootstrap() {
       message.tone || "info"
     );
   });
+}
+
+function installSiteHideOption() {
+  document.addEventListener("contextmenu", (event) => {
+    const icon = event.target.closest?.(".ldm-site-btn, .ldm-media-button-floating, #ldm-yt-download-btn");
+    if (!icon) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    document.querySelector(".ldm-site-menu")?.remove();
+    const menu = document.createElement("div");
+    menu.className = "ldm-site-menu";
+    menu.textContent = "Hide download icon on this site";
+    menu.style.left = `${Math.min(event.clientX, innerWidth - 220)}px`;
+    menu.style.top = `${Math.min(event.clientY, innerHeight - 52)}px`;
+    menu.addEventListener("click", () => {
+      sendExtensionMessage({
+        type: "set-hidden-sites",
+        hiddenSites: [...new Set([...hiddenSitesForPage, window.location.hostname.toLowerCase()])]
+      }, (response) => {
+        if (response?.ok) window.location.reload();
+        else showToast("Could not update hidden sites. Check the native messaging host.", "error");
+      });
+    });
+    document.documentElement.appendChild(menu);
+    const dismiss = (click) => {
+      if (!menu.contains(click.target)) menu.remove();
+      document.removeEventListener("pointerdown", dismiss, true);
+    };
+    setTimeout(() => document.addEventListener("pointerdown", dismiss, true), 0);
+  }, true);
+}
+
+function enableButtonDragging() {
+  let dragged = null;
+  let start = null;
+  const key = `buttonPosition:${window.location.hostname}`;
+  chrome.storage.local.get(key, (saved) => {
+    const position = saved[key];
+    const applyPosition = (button) => {
+      if (!position || button.dataset.ldmPositionRestored) return;
+      button.dataset.ldmPositionRestored = "true";
+      button.style.setProperty("position", "fixed", "important");
+      button.style.setProperty("left", `${position.left}px`, "important");
+      button.style.setProperty("top", `${position.top}px`, "important");
+      button.style.setProperty("right", "auto", "important");
+    };
+    const restore = (root) => {
+      if (root.matches?.(".ldm-media-button-floating, #ldm-yt-download-btn")) applyPosition(root);
+      root.querySelectorAll?.(".ldm-media-button-floating, #ldm-yt-download-btn").forEach(applyPosition);
+    };
+    restore(document);
+    new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach(restore)))
+      .observe(document.documentElement, { childList: true, subtree: true });
+  });
+  document.addEventListener("pointerdown", (event) => {
+    const button = event.target.closest?.(".ldm-media-button-floating, #ldm-yt-download-btn");
+    if (!button || event.button !== 0) return;
+    dragged = button;
+    start = { x: event.clientX, y: event.clientY, rect: button.getBoundingClientRect(), moved: false };
+  }, true);
+  document.addEventListener("pointermove", (event) => {
+    if (!dragged || !start) return;
+    if (!start.moved && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5) return;
+    start.moved = true;
+    dragged.style.setProperty("position", "fixed", "important");
+    dragged.style.setProperty("left", `${Math.max(0, Math.min(innerWidth - start.rect.width, start.rect.left + event.clientX - start.x))}px`, "important");
+    dragged.style.setProperty("top", `${Math.max(0, Math.min(innerHeight - start.rect.height, start.rect.top + event.clientY - start.y))}px`, "important");
+    dragged.style.setProperty("right", "auto", "important");
+  }, true);
+  document.addEventListener("pointerup", () => {
+    if (dragged && start?.moved) {
+      chrome.storage.local.set({ [key]: { left: parseFloat(dragged.style.left), top: parseFloat(dragged.style.top) } });
+      dragged.dataset.ldmDragged = "true";
+      const button = dragged;
+      setTimeout(() => delete button.dataset.ldmDragged, 0);
+    }
+    dragged = null;
+    start = null;
+  }, true);
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.("[data-ldm-dragged='true']")) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
 }
 
 function createHoverButton() {

@@ -217,6 +217,20 @@ impl AppState {
             let source_page_url = staged.request.source_page_url.clone();
             let source_title = staged.request.source_title.clone();
             let download_url = staged.request.url.clone();
+            let ask_location = self.storage
+                .get_setting("ask_browser_download_location")?
+                .as_deref() != Some("false");
+            if ask_location {
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
+                app_handle.emit("browser-download-prompt", staged.request.clone())
+                    .map_err(|error| format!("failed to show browser download dialog: {error}"))?;
+                acknowledge_staged_browser_request(&staged.path)?;
+                continue;
+            }
 
             let result = queue_download_request(
                 app_handle,

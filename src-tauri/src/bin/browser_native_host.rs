@@ -3,6 +3,7 @@ use linux_download_manager::{
     stage_browser_request,
 };
 use serde::{Deserialize, Serialize};
+use rusqlite::{params, Connection};
 use std::collections::HashMap;
 use std::io::{self, ErrorKind, Read, Write};
 use std::path::{Path, PathBuf};
@@ -13,7 +14,9 @@ const MAX_MESSAGE_BYTES: usize = 1024 * 1024;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct NativeHostInput {
-    url: String,
+    url: Option<String>,
+    operation: Option<String>,
+    hidden_sites: Option<Vec<String>>,
     #[serde(default)]
     fallback_urls: Vec<String>,
     audio_url: Option<String>,
@@ -39,6 +42,8 @@ struct NativeHostOutput {
     staged: bool,
     inbox_file: Option<String>,
     error: Option<String>,
+    hidden_sites: Option<Vec<String>>,
+    hidden_sites_configured: bool,
 }
 
 fn main() {
@@ -48,6 +53,8 @@ fn main() {
             staged: false,
             inbox_file: None,
             error: Some(error),
+            hidden_sites: None,
+            hidden_sites_configured: false,
         });
         std::process::exit(1);
     }
@@ -55,8 +62,30 @@ fn main() {
 
 fn run() -> Result<(), String> {
     while let Some(input) = read_message::<NativeHostInput>()? {
+        if let Some(operation) = input.operation.as_deref() {
+            let db_path = resolve_app_data_dir()?.join("downloads.sqlite3");
+            let connection = Connection::open(db_path).map_err(|error| format!("failed to open settings database: {error}"))?;
+            connection.execute_batch("CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);")
+                .map_err(|error| format!("failed to initialize settings table: {error}"))?;
+            if operation == "get-hidden-sites" {
+                let value = connection.query_row("SELECT value FROM app_settings WHERE key = 'hidden_browser_sites'", [], |row| row.get::<_, String>(0)).ok();
+                let hidden_sites = value.and_then(|json| serde_json::from_str(&json).ok()).unwrap_or_default();
+                let configured = connection.query_row("SELECT 1 FROM app_settings WHERE key = 'hidden_browser_sites'", [], |_| Ok(())).is_ok();
+                write_message(&NativeHostOutput { ok: true, staged: false, inbox_file: None, error: None, hidden_sites: Some(hidden_sites), hidden_sites_configured: configured })?;
+                continue;
+            }
+            if operation == "set-hidden-sites" {
+                let hidden_sites = input.hidden_sites.unwrap_or_default();
+                let json = serde_json::to_string(&hidden_sites).map_err(|error| format!("failed to encode hidden sites: {error}"))?;
+                connection.execute("INSERT OR REPLACE INTO app_settings (key, value) VALUES ('hidden_browser_sites', ?1)", params![json]).map_err(|error| format!("failed to save hidden sites: {error}"))?;
+                write_message(&NativeHostOutput { ok: true, staged: false, inbox_file: None, error: None, hidden_sites: Some(hidden_sites), hidden_sites_configured: true })?;
+                continue;
+            }
+            return Err(format!("unknown native host operation: {operation}"));
+        }
+        let url = input.url.ok_or_else(|| "missing download URL".to_string())?;
         let request: BrowserDownloadRequest = new_browser_download_request(
-            input.url,
+            url,
             input.fallback_urls,
             input.audio_url,
             input.save_dir,
@@ -80,6 +109,8 @@ fn run() -> Result<(), String> {
             staged: true,
             inbox_file: Some(staged_file.display().to_string()),
             error: None,
+            hidden_sites: None,
+            hidden_sites_configured: false,
         })?;
     }
 

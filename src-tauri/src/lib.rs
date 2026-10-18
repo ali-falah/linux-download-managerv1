@@ -138,6 +138,7 @@ pub fn run() {
             commands::inspect_url,
             commands::list_downloads,
             commands::start_download,
+            commands::start_browser_download,
             commands::pick_save_directory,
             commands::app_settings,
             commands::update_app_settings,

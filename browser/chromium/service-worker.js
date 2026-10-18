@@ -2,6 +2,7 @@ const HOST_NAME = "com.eko.linuxdownloadmanager";
 const MENU_DOWNLOAD_LINK = "linux-download-manager.link";
 const MENU_DOWNLOAD_PAGE = "linux-download-manager.page";
 const MENU_DOWNLOAD_MEDIA = "linux-download-manager.media";
+const MENU_TOGGLE_SITE = "linux-download-manager.toggle-site";
 const BADGE_COLOR = "#0e9f6e";
 const MAX_MEDIA_CANDIDATES = 12;
 const DOWNLOADABLE_EXTENSIONS = new Set([
@@ -20,6 +21,22 @@ const DOWNLOADABLE_EXTENSIONS = new Set([
 ]);
 const STREAMING_EXTENSIONS = new Set(["m3u8", "mpd", "m4s", "ts", "aac", "m3u"]);
 const IMAGE_EXTENSIONS = new Set(["avif", "bmp", "gif", "jpeg", "jpg", "png", "svg", "webp"]);
+let hiddenSitesCache = null;
+let hiddenSitesCacheTime = 0;
+let hiddenSitesRead = null;
+
+function ensureSiteVisibilityMenu() {
+  chrome.contextMenus.update(MENU_TOGGLE_SITE, { title: "Show/hide Linux Download Manager on this site" }, () => {
+    if (!chrome.runtime.lastError) return;
+    chrome.contextMenus.create({
+      id: MENU_TOGGLE_SITE,
+      title: "Show/hide Linux Download Manager on this site",
+      contexts: ["page"]
+    }, () => void chrome.runtime.lastError);
+  });
+}
+
+ensureSiteVisibilityMenu();
 
 function getExtension(str) {
   if (!str) return "";
@@ -56,6 +73,7 @@ function saveCaptureDiagnostic(tabId, page) {
 chrome.action.setBadgeBackgroundColor({ color: BADGE_COLOR });
 
 chrome.runtime.onInstalled.addListener(() => {
+  ensureSiteVisibilityMenu();
   chrome.contextMenus.create({
     id: MENU_DOWNLOAD_LINK,
     title: "Download link with Linux Download Manager",
@@ -90,6 +108,22 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === MENU_TOGGLE_SITE && tab?.id != null && /^https?:/i.test(tab.url ?? "")) {
+    const hostname = new URL(tab.url).hostname.toLowerCase();
+    getNativeHiddenSites().catch(() => new Promise((resolve) => {
+      chrome.storage.local.get({ hiddenSites: [] }, ({ hiddenSites }) => resolve(hiddenSites));
+    })).then((hiddenSites) => {
+      const isHidden = hiddenSites.some((site) => hostname === site || hostname.endsWith(`.${site}`));
+      const next = isHidden
+        ? hiddenSites.filter((site) => !(hostname === site || hostname.endsWith(`.${site}`)))
+        : [...new Set([...hiddenSites, hostname])];
+      sendNativeSettingsMessage({ operation: "set-hidden-sites", hiddenSites: next }).catch(() => {});
+      hiddenSitesCache = next;
+      hiddenSitesCacheTime = Date.now();
+      chrome.storage.local.set({ hiddenSites: next }, () => chrome.tabs.reload(tab.id));
+    });
+    return;
+  }
   if (info.menuItemId === MENU_DOWNLOAD_LINK) {
     enrichCaptureWithMediaCookies({
       url: info.linkUrl,
@@ -125,6 +159,27 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const tabId = sender.tab?.id;
+
+  if (message?.type === "sync-hidden-sites") {
+    getNativeHiddenSites().then((hiddenSites) => {
+      chrome.storage.local.set({ hiddenSites }, () => sendResponse({ ok: true, hiddenSites }));
+    }).catch(() => chrome.storage.local.get({ hiddenSites: [] }, ({ hiddenSites }) => sendResponse({ ok: true, hiddenSites })));
+    return true;
+  }
+
+  if (message?.type === "set-hidden-sites") {
+    const hiddenSites = [...new Set((message.hiddenSites ?? []).map((site) => String(site).trim().toLowerCase()).filter(Boolean))];
+    sendNativeSettingsMessage({ operation: "set-hidden-sites", hiddenSites }).then(() => {
+      hiddenSitesCache = hiddenSites;
+      hiddenSitesCacheTime = Date.now();
+      chrome.storage.local.set({ hiddenSites }, () => sendResponse({ ok: true, hiddenSites }));
+    }).catch(() => {
+      hiddenSitesCache = hiddenSites;
+      hiddenSitesCacheTime = Date.now();
+      chrome.storage.local.set({ hiddenSites }, () => sendResponse({ ok: true, hiddenSites }));
+    });
+    return true;
+  }
 
   if (message?.type === "capture-diagnostic-frame") {
     if (typeof tabId === "number" && tabId >= 0) {
@@ -218,6 +273,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 });
+
+function sendNativeSettingsMessage(message) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendNativeMessage(HOST_NAME, message, (response) => {
+      if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+      else if (!response?.ok) reject(new Error(response?.error ?? "Native host rejected settings request."));
+      else resolve(response);
+    });
+  });
+}
+
+function getNativeHiddenSites() {
+  if (hiddenSitesCache && Date.now() - hiddenSitesCacheTime < 1500) return Promise.resolve(hiddenSitesCache);
+  if (hiddenSitesRead) return hiddenSitesRead;
+  hiddenSitesRead = sendNativeSettingsMessage({ operation: "get-hidden-sites" })
+    .then(async (response) => {
+      if (!response.hiddenSitesConfigured) {
+        const legacy = await new Promise((resolve) => chrome.storage.local.get({ hiddenSites: [] }, ({ hiddenSites }) => resolve(hiddenSites)));
+        if (legacy.length) response = await sendNativeSettingsMessage({ operation: "set-hidden-sites", hiddenSites: legacy });
+      }
+      hiddenSitesCache = response.hiddenSites ?? [];
+      hiddenSitesCacheTime = Date.now();
+      return hiddenSitesCache;
+    })
+    .finally(() => { hiddenSitesRead = null; });
+  return hiddenSitesRead;
+}
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   recentMediaByTab.delete(tabId);

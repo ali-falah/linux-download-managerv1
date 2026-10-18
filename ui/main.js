@@ -17,6 +17,8 @@ async function invoke(cmd, args = {}) {
             defaultDownloadDir: "~/Downloads",
             maxConcurrentDownloads: 3,
             defaultBandwidthLimitKbps: 0,
+            askBrowserDownloadLocation: true,
+            hiddenSites: [],
         };
     }
     return {};
@@ -40,6 +42,8 @@ let sortBy = "newest";
 let appSettings = null;
 let currentMetadata = null;
 let deleteCandidateId = null;
+const pendingBrowserDownloads = [];
+let currentBrowserDownload = null;
 
 // Initialize on DOM Ready
 document.addEventListener("DOMContentLoaded", async () => {
@@ -154,8 +158,26 @@ function initEventListeners() {
     document.getElementById("settings-cancel-btn").addEventListener("click", closeSettingsModal);
     document.getElementById("settings-browse-btn").addEventListener("click", pickDirectoryForSettings);
     document.getElementById("save-settings").addEventListener("click", saveSettings);
+    document.getElementById("browser-download-start").addEventListener("click", startBrowserDownloadFromDialog);
+    document.getElementById("browser-download-browse").addEventListener("click", browseBrowserDownloadLocation);
+    document.getElementById("browser-download-cancel").addEventListener("click", closeBrowserDownloadDialog);
+    document.getElementById("browser-download-close").addEventListener("click", closeBrowserDownloadDialog);
     document.getElementById("settings-max-concurrent").addEventListener("input", (e) => {
         document.getElementById("concurrent-display").textContent = e.target.value;
+    });
+    document.querySelectorAll("[data-extension-tab]").forEach((tab) => tab.addEventListener("click", () => {
+        document.querySelectorAll("[data-extension-tab]").forEach((item) => item.classList.toggle("active", item === tab));
+        document.getElementById("extension-download-panel").hidden = tab.dataset.extensionTab !== "download";
+        document.getElementById("extension-hidden-sites-panel").hidden = tab.dataset.extensionTab !== "hidden-sites";
+    }));
+    document.getElementById("hidden-site-add-btn").addEventListener("click", addHiddenSite);
+    document.getElementById("hidden-site-input").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") addHiddenSite();
+    });
+    document.getElementById("hidden-sites-list").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-show-site]");
+        if (!button) return;
+        updateHiddenSites((appSettings?.hiddenSites ?? []).filter((site) => site !== button.dataset.showSite));
     });
 
     document.getElementById("btn-open-ext-folder").addEventListener("click", async () => {
@@ -248,6 +270,55 @@ function closeAllModals() {
     closeNewDownloadModal();
     closeSettingsModal();
     closeDeleteModal();
+    closeBrowserDownloadDialog();
+}
+
+function showNextBrowserDownload() {
+    currentBrowserDownload = pendingBrowserDownloads.shift() || null;
+    const modal = document.getElementById("browser-download-modal");
+    if (!currentBrowserDownload) {
+        modal.hidden = true;
+        return;
+    }
+    document.getElementById("browser-download-url").value = currentBrowserDownload.url || "";
+    document.getElementById("browser-download-location").value = currentBrowserDownload.saveDir || appSettings?.defaultDownloadDir || "";
+    document.getElementById("browser-download-filename").value = currentBrowserDownload.sourceTitle || "Download";
+    modal.hidden = false;
+}
+
+function closeBrowserDownloadDialog() {
+    currentBrowserDownload = null;
+    showNextBrowserDownload();
+}
+
+async function startBrowserDownloadFromDialog() {
+    const saveDir = document.getElementById("browser-download-location").value.trim();
+    if (!saveDir || !currentBrowserDownload) {
+        showToast("Enter a save location to continue", "error");
+        return;
+    }
+    const button = document.getElementById("browser-download-start");
+    button.disabled = true;
+    try {
+        await invoke("start_browser_download", { request: currentBrowserDownload, saveDir });
+        showToast("Download added to the queue", "success");
+        currentBrowserDownload = null;
+        showNextBrowserDownload();
+    } catch (error) {
+        showToast("Could not start download: " + error, "error");
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function browseBrowserDownloadLocation() {
+    try {
+        const initialDir = document.getElementById("browser-download-location").value || appSettings?.defaultDownloadDir;
+        const path = await invoke("pick_save_directory", { initialDir });
+        if (path) document.getElementById("browser-download-location").value = path;
+    } catch (error) {
+        showToast("Could not choose a save folder: " + error, "error");
+    }
 }
 
 async function pasteFromClipboard() {
@@ -469,9 +540,63 @@ async function loadSettings() {
             document.getElementById("settings-max-concurrent").value = appSettings.maxConcurrentDownloads || 3;
             document.getElementById("concurrent-display").textContent = appSettings.maxConcurrentDownloads || 3;
             document.getElementById("settings-bandwidth-limit").value = appSettings.defaultBandwidthLimitKbps || "";
+            document.getElementById("settings-ask-browser-location").checked = appSettings.askBrowserDownloadLocation !== false;
+            renderHiddenSites();
         }
     } catch (error) {
         console.error("Could not load settings:", error);
+    }
+}
+
+function renderHiddenSites() {
+    const list = document.getElementById("hidden-sites-list");
+    list.replaceChildren();
+    const sites = [...new Set(appSettings?.hiddenSites ?? [])].sort();
+    if (!sites.length) {
+        const empty = document.createElement("div");
+        empty.className = "hidden-sites-empty";
+        empty.textContent = "No sites are hidden. The download icon is available on all supported sites.";
+        list.appendChild(empty);
+        return;
+    }
+    for (const site of sites) {
+        const row = document.createElement("div");
+        row.className = "hidden-site-row";
+        const domain = document.createElement("span");
+        domain.className = "hidden-site-domain";
+        domain.textContent = site;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-secondary btn-sm";
+        button.dataset.showSite = site;
+        button.textContent = "Show on site";
+        row.append(domain, button);
+        list.appendChild(row);
+    }
+}
+
+async function addHiddenSite() {
+    const input = document.getElementById("hidden-site-input");
+    const value = input.value.trim();
+    if (!value) return;
+    try {
+        const hostname = new URL(value.includes("://") ? value : `https://${value}`).hostname.toLowerCase();
+        if (!hostname) throw new Error("Enter a valid website address");
+        const sites = [...new Set([...(appSettings?.hiddenSites ?? []), hostname])];
+        await updateHiddenSites(sites);
+        input.value = "";
+    } catch (error) {
+        showToast(error.message || "Enter a valid website address", "error");
+    }
+}
+
+async function updateHiddenSites(hiddenSites) {
+    try {
+        appSettings = await invoke("update_app_settings", { hiddenSites });
+        renderHiddenSites();
+        showToast("Hidden sites updated", "success");
+    } catch (error) {
+        showToast("Could not update hidden sites: " + error, "error");
     }
 }
 
@@ -483,6 +608,7 @@ async function saveSettings() {
         await invoke("update_app_settings", {
             maxConcurrentDownloads: maxConcurrent,
             defaultBandwidthLimitKbps: bandwidthLimit,
+            askBrowserDownloadLocation: document.getElementById("settings-ask-browser-location").checked,
         });
 
         const themeSelect = document.getElementById("settings-theme-select");
@@ -897,6 +1023,11 @@ function initRealtimeListeners() {
         } else if (event.payload === "settings") {
             openSettingsModal();
         }
+    });
+
+    listen("browser-download-prompt", (event) => {
+        pendingBrowserDownloads.push(event.payload);
+        if (!currentBrowserDownload) showNextBrowserDownload();
     });
 
     scheduleAdaptivePoll();
