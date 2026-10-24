@@ -80,8 +80,6 @@ function initEventListeners() {
             document.querySelectorAll(".sidebar-nav [data-filter]").forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
             currentFilter = btn.dataset.filter;
-            currentCategory = "all";
-            document.querySelectorAll(".sidebar-nav [data-category]").forEach((b) => b.classList.remove("active"));
             renderDownloadsList();
         });
     });
@@ -92,8 +90,6 @@ function initEventListeners() {
             document.querySelectorAll(".sidebar-nav [data-category]").forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
             currentCategory = btn.dataset.category;
-            currentFilter = "all";
-            document.querySelectorAll(".sidebar-nav [data-filter]").forEach((b) => b.classList.remove("active"));
             renderDownloadsList();
         });
     });
@@ -695,6 +691,12 @@ async function togglePauseAll() {
 function renderDownloadsList() {
     const container = document.getElementById("downloads-container");
 
+    // Clean up stale live stats for downloads no longer in the list
+    const validIds = new Set(allDownloads.map((dl) => dl.id));
+    for (const key of liveDownloadStats.keys()) {
+        if (!validIds.has(key)) liveDownloadStats.delete(key);
+    }
+
     // Filter
     let filtered = allDownloads.filter((dl) => {
         if (currentFilter !== "all" && dl.status !== currentFilter) return false;
@@ -824,7 +826,7 @@ function renderDownloadCard(dl) {
         });
     }
 
-    const progress = total ? Math.min(100, (downloaded / total) * 100).toFixed(1) : 0;
+    const progress = total ? Number(Math.min(100, (downloaded / total) * 100).toFixed(1)) : 0;
     const category = categorizeFile(dl.fileName);
 
     let host = "";
@@ -1058,7 +1060,7 @@ function handleDownloadStateEvent(event) {
     if (card) {
         const total = event.totalBytes;
         const downloaded = event.downloadedBytes;
-        const progress = total ? Math.min(100, (downloaded / total) * 100).toFixed(1) : 0;
+        const progress = total ? Number(Math.min(100, (downloaded / total) * 100).toFixed(1)) : 0;
         const fill = card.querySelector(".progress-fill");
         if (fill) fill.style.width = `${progress}%`;
 
