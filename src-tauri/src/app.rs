@@ -11,8 +11,8 @@ use serde::Serialize;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 use tauri::async_runtime::JoinHandle;
 use tauri::{AppHandle, Emitter, Manager};
@@ -63,13 +63,16 @@ pub struct AppState {
     pub storage: Storage,
     pub download_service: DownloadService,
     pub app_data_dir: PathBuf,
-    pub default_download_dir: PathBuf,
+    default_download_dir: RwLock<PathBuf>,
     max_concurrent_downloads: AtomicUsize,
     default_bandwidth_limit_kbps: AtomicU64,
     queue: Mutex<DownloadQueueState>,
     pub live_metrics: Mutex<HashMap<i64, (u64, Option<u64>)>>,
     /// Downloads the user paused/cancelled; their tasks must not write status anymore.
     stopped_ids: Mutex<HashSet<i64>>,
+    /// Whether a browser-download confirmation is waiting for the user.
+    /// Stops the focus-retry loop as soon as the dialog is answered.
+    pub browser_dialog_pending: AtomicBool,
 }
 
 impl AppState {
@@ -81,7 +84,15 @@ impl AppState {
         let db_path = app_data_dir.join("downloads.sqlite3");
         let storage = Storage::open(&db_path)?;
 
-        let default_download_dir = resolve_default_download_dir()?;
+        // A user-chosen folder persists in settings and wins over ~/Downloads.
+        let default_download_dir = match storage
+            .get_setting("default_download_dir")
+            .ok()
+            .flatten()
+        {
+            Some(dir) if !dir.trim().is_empty() => PathBuf::from(dir),
+            _ => resolve_default_download_dir()?,
+        };
         fs::create_dir_all(&default_download_dir)
             .map_err(|error| format!("failed to create default download directory: {error}"))?;
 
@@ -108,7 +119,7 @@ impl AppState {
             storage,
             download_service: DownloadService::new(client),
             app_data_dir,
-            default_download_dir,
+            default_download_dir: RwLock::new(default_download_dir),
             max_concurrent_downloads: AtomicUsize::new(max_concurrent),
             default_bandwidth_limit_kbps: AtomicU64::new(default_bandwidth),
             queue: Mutex::new(DownloadQueueState {
@@ -117,6 +128,7 @@ impl AppState {
             }),
             live_metrics: Mutex::new(HashMap::new()),
             stopped_ids: Mutex::new(HashSet::new()),
+            browser_dialog_pending: AtomicBool::new(false),
         })
     }
 
@@ -125,13 +137,39 @@ impl AppState {
             Some(path) if !path.is_empty() => {
                 let path = PathBuf::from(path);
                 if path.is_relative() {
-                    Ok(self.default_download_dir.join(path))
+                    Ok(self.default_download_dir().join(path))
                 } else {
                     Ok(path)
                 }
             }
-            _ => Ok(self.default_download_dir.clone()),
+            _ => Ok(self.default_download_dir()),
         }
+    }
+
+    pub fn default_download_dir(&self) -> PathBuf {
+        self.default_download_dir.read().unwrap().clone()
+    }
+
+    pub fn set_default_download_dir(&self, path: &str) -> Result<PathBuf, String> {
+        let trimmed = path.trim();
+        let expanded = match trimmed.strip_prefix("~/") {
+            Some(rest) => {
+                let home = std::env::var("HOME")
+                    .map_err(|_| "HOME environment variable is missing".to_string())?;
+                PathBuf::from(home).join(rest)
+            }
+            None => PathBuf::from(trimmed),
+        };
+        if expanded.as_os_str().is_empty() {
+            return Err("default download folder must be an absolute path".to_string());
+        }
+        fs::create_dir_all(&expanded).map_err(|error| {
+            format!("cannot use {}: {error}", expanded.display())
+        })?;
+        let as_string = expanded.to_string_lossy().to_string();
+        self.storage.set_setting("default_download_dir", &as_string)?;
+        *self.default_download_dir.write().unwrap() = expanded;
+        Ok(PathBuf::from(as_string))
     }
 
     pub fn max_concurrent_downloads(&self) -> usize {
@@ -221,11 +259,10 @@ impl AppState {
                 .get_setting("ask_browser_download_location")?
                 .as_deref() != Some("false");
             if ask_location {
-                if let Some(window) = app_handle.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.unminimize();
-                    let _ = window.set_focus();
-                }
+                // Mark pending BEFORE summoning so the focus-retry loop
+                // knows to keep re-applying the raise.
+                self.browser_dialog_pending.store(true, Ordering::Relaxed);
+                summon_main_window(app_handle);
                 app_handle.emit("browser-download-prompt", staged.request.clone())
                     .map_err(|error| format!("failed to show browser download dialog: {error}"))?;
                 acknowledge_staged_browser_request(&staged.path)?;
@@ -415,6 +452,45 @@ impl AppState {
         let queue = self.queue.lock().unwrap();
         queue.pending.len()
     }
+}
+
+/// Force the main window in the user's face (IDM-style). A single
+/// `set_focus` from a background app is dropped by Wayland compositors'
+/// focus-stealing prevention, and some window managers skip a no-op
+/// "already on top" state — so we re-apply always-on-top, retry focus a few
+/// times over ~2 seconds, and demand user attention (taskbar urgency flash)
+/// on every attempt. Retries stop as soon as the confirmation dialog is
+/// answered (`browser_dialog_pending` cleared), so the window cannot keep
+/// nagging after the user has dealt with the dialog.
+pub fn summon_main_window(app_handle: &AppHandle) {
+    let Some(window) = app_handle.get_webview_window("main") else {
+        return;
+    };
+    let _ = window.show();
+    let _ = window.unminimize();
+    // Toggle off/on to force the WM to re-evaluate the stack position.
+    let _ = window.set_always_on_top(false);
+    let _ = window.set_always_on_top(true);
+    let _ = window.set_focus();
+    let _ = window.request_user_attention(Some(tauri::UserAttentionType::Critical));
+
+    let app_handle = app_handle.clone();
+    let win = window.clone();
+    tauri::async_runtime::spawn(async move {
+        for delay_ms in [300u64, 900, 2000] {
+            tokio::time::sleep(Duration::from_millis(delay_ms)).await;
+            let pending = app_handle
+                .state::<AppState>()
+                .browser_dialog_pending
+                .load(Ordering::Relaxed);
+            if !pending {
+                return;
+            }
+            let _ = win.set_always_on_top(true);
+            let _ = win.set_focus();
+            let _ = win.request_user_attention(Some(tauri::UserAttentionType::Critical));
+        }
+    });
 }
 
 fn start_download_task(

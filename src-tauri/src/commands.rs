@@ -3,7 +3,8 @@ use crate::browser::BrowserDownloadRequest;
 use crate::download::{DownloadMetadata, DownloadRecord};
 use crate::jobs::{DownloadJobRequest, queue_download_request};
 use serde::Serialize;
-use tauri::State;
+use std::sync::atomic::Ordering;
+use tauri::{Manager, State};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -122,7 +123,7 @@ pub async fn pick_save_directory(
 #[tauri::command]
 pub async fn app_settings(state: State<'_, AppState>) -> Result<AppSettings, String> {
     Ok(AppSettings {
-        default_download_dir: state.default_download_dir.display().to_string(),
+        default_download_dir: state.default_download_dir().display().to_string(),
         max_concurrent_downloads: state.max_concurrent_downloads(),
         default_bandwidth_limit_kbps: state.default_bandwidth_limit_kbps().unwrap_or(0),
         ask_browser_download_location: state.storage.get_setting("ask_browser_download_location")?.as_deref() != Some("false"),
@@ -133,11 +134,18 @@ pub async fn app_settings(state: State<'_, AppState>) -> Result<AppSettings, Str
 #[tauri::command]
 pub async fn update_app_settings(
     state: State<'_, AppState>,
+    default_download_dir: Option<String>,
     max_concurrent_downloads: Option<usize>,
     default_bandwidth_limit_kbps: Option<u64>,
     ask_browser_download_location: Option<bool>,
     hidden_sites: Option<Vec<String>>,
 ) -> Result<AppSettings, String> {
+    // Validate the folder first so a failure cannot leave the other
+    // settings half-applied.
+    if let Some(dir) = default_download_dir {
+        state.set_default_download_dir(&dir)?;
+    }
+
     if let Some(value) = max_concurrent_downloads {
         if value == 0 || value > 10 {
             return Err("max concurrent downloads must be between 1 and 10".to_string());
@@ -156,12 +164,55 @@ pub async fn update_app_settings(
     }
 
     Ok(AppSettings {
-        default_download_dir: state.default_download_dir.display().to_string(),
+        default_download_dir: state.default_download_dir().display().to_string(),
         max_concurrent_downloads: state.max_concurrent_downloads(),
         default_bandwidth_limit_kbps: state.default_bandwidth_limit_kbps().unwrap_or(0),
         ask_browser_download_location: state.storage.get_setting("ask_browser_download_location")?.as_deref() != Some("false"),
         hidden_sites: hidden_browser_sites(&state),
     })
+}
+
+/// Actual folder where the browser extension was installed (recorded at
+/// install/first-run time). Returns None if it cannot be located.
+#[tauri::command]
+pub async fn extension_folder(state: State<'_, AppState>) -> Result<Option<String>, String> {
+    let marker = state.app_data_dir.join(".extension_installed");
+    if let Ok(path) = std::fs::read_to_string(&marker) {
+        let path = path.trim();
+        if !path.is_empty() {
+            return Ok(Some(path.to_string()));
+        }
+    }
+    if let Ok(home) = std::env::var("HOME") {
+        let candidate = std::path::PathBuf::from(home)
+            .join("Documents")
+            .join("Linux Download Manager Extension");
+        if candidate.is_dir() {
+            return Ok(Some(candidate.display().to_string()));
+        }
+    }
+    Ok(None)
+}
+
+/// Force the main window with the browser-download dialog in front of
+/// everything.active = true re-applies always-on-top and retries focus;
+/// active = false releases the pin (called when the queue drains).
+#[tauri::command]
+pub async fn set_browser_dialog_focus(
+    app_handle: tauri::AppHandle,
+    state: State<'_, AppState>,
+    active: bool,
+) -> Result<(), String> {
+    if active {
+        crate::app::summon_main_window(&app_handle);
+    } else {
+        // Dialog answered/queue drained: stop the retry loop and unpin.
+        state.browser_dialog_pending.store(false, Ordering::Relaxed);
+        if let Some(window) = app_handle.get_webview_window("main") {
+            let _ = window.set_always_on_top(false);
+        }
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -274,7 +325,7 @@ pub async fn system_status(state: State<'_, AppState>) -> Result<SystemStatus, S
     Ok(SystemStatus {
         active_downloads: state.active_download_count(),
         pending_downloads: state.pending_download_count(),
-        default_download_dir: state.default_download_dir.display().to_string(),
+        default_download_dir: state.default_download_dir().display().to_string(),
     })
 }
 
@@ -293,6 +344,18 @@ pub async fn delete_download(
         }
     }
     state.storage.delete_download(id)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn open_url(url: String) -> Result<(), String> {
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Only http/https URLs can be opened".to_string());
+    }
+    std::process::Command::new("xdg-open")
+        .arg(&url)
+        .spawn()
+        .map_err(|e| format!("Failed to open URL: {e}"))?;
     Ok(())
 }
 

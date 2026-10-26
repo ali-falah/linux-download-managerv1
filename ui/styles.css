@@ -8,49 +8,49 @@
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: "SF Mono", "Fira Code", "Roboto Mono", Consolas, monospace;
 
-    /* Simplified Neutral Dark Palette */
-    --bg-base: #11141a;
-    --bg-sidebar: #161922;
-    --bg-card: #1c212c;
-    --bg-card-hover: #222836;
-    --bg-input: #141720;
-    --bg-elevated: #232a39;
+    /* Soft Graphite Dark — calm neutral surfaces (no blue cast, no pure white) */
+    --bg-base: #14161a;
+    --bg-sidebar: #191c21;
+    --bg-card: #1e2127;
+    --bg-card-hover: #242830;
+    --bg-input: #171a1f;
+    --bg-elevated: #262a32;
     --bg-hover: rgba(255, 255, 255, 0.05);
 
-    /* Simple, Trustworthy Accent (Solid Blue) */
-    --accent: #2563eb;
-    --accent-hover: #1d4ed8;
-    --accent-subtle: rgba(37, 99, 235, 0.15);
-    --accent-text: #ffffff;
-    --accent-sidebar-active: #60a5fa;
+    /* Muted Indigo Accent — trustworthy, low-contrast, calm in both themes */
+    --accent: #5b7fdb;
+    --accent-hover: #4a6dc7;
+    --accent-subtle: rgba(91, 127, 219, 0.14);
+    --accent-text: #f5f7fc;
+    --accent-sidebar-active: #8aa7e8;
 
-    /* Clean Semantic Status Colors */
-    --status-active: #3b82f6;
-    --status-active-bg: rgba(59, 130, 246, 0.12);
-    --status-active-text: #60a5fa;
-    --status-success: #10b981;
-    --status-success-bg: rgba(16, 185, 129, 0.12);
-    --status-success-text: #10b981;
-    --status-warning: #f59e0b;
-    --status-warning-bg: rgba(245, 158, 11, 0.12);
-    --status-warning-text: #f59e0b;
-    --status-danger: #ef4444;
-    --status-danger-bg: rgba(239, 68, 68, 0.12);
-    --status-danger-text: #ef4444;
-    --status-queued: #94a3b8;
-    --status-queued-bg: rgba(148, 163, 184, 0.12);
-    --status-queued-text: #94a3b8;
+    /* Softened Semantic Status Colors */
+    --status-active: #5b7fdb;
+    --status-active-bg: rgba(91, 127, 219, 0.12);
+    --status-active-text: #8aa7e8;
+    --status-success: #48b584;
+    --status-success-bg: rgba(72, 181, 132, 0.12);
+    --status-success-text: #6fd3a4;
+    --status-warning: #d9a03f;
+    --status-warning-bg: rgba(217, 160, 63, 0.12);
+    --status-warning-text: #e2b35e;
+    --status-danger: #e06c5f;
+    --status-danger-bg: rgba(224, 108, 95, 0.12);
+    --status-danger-text: #ef8b7f;
+    --status-queued: #9aa1ad;
+    --status-queued-bg: rgba(154, 161, 173, 0.12);
+    --status-queued-text: #b4bac4;
 
-    /* Text Colors */
-    --text-main: #f1f5f9;
-    --text-muted: #94a3b8;
-    --text-dim: #64748b;
-    --text-disabled: #64748b;
+    /* Text Colors — graduated greys, no pure white (eye relief) */
+    --text-main: #e8eaee;
+    --text-muted: #a3a8b3;
+    --text-dim: #757b87;
+    --text-disabled: #757b87;
 
     /* Borders & Geometry */
-    --border-color: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.15);
-    --border-active: rgba(59, 130, 246, 0.4);
+    --border-color: rgba(255, 255, 255, 0.07);
+    --border-hover: rgba(255, 255, 255, 0.14);
+    --border-active: rgba(91, 127, 219, 0.4);
     --radius-sm: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
@@ -66,18 +66,18 @@
     --scrollbar-thumb: rgba(255, 255, 255, 0.12);
     --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
 
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.25);
-    --shadow-modal: 0 16px 40px rgba(0, 0, 0, 0.5);
-    --modal-backdrop: rgba(0, 0, 0, 0.65);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.22);
+    --shadow-modal: 0 16px 40px rgba(0, 0, 0, 0.45);
+    --modal-backdrop: rgba(10, 11, 13, 0.6);
 
     --kbd-bg: rgba(0, 0, 0, 0.25);
-    --kbd-text: rgba(255, 255, 255, 0.7);
+    --kbd-text: rgba(232, 234, 238, 0.7);
 
-    --metric-speed: #38bdf8;
-    --metric-eta: #94a3b8;
+    --metric-speed: #6aa7e0;
+    --metric-eta: #a3a8b3;
 
-    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f1f5f9' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a3a8b3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e8eaee' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 
     --transition: 0.15s ease;
 }
@@ -85,74 +85,74 @@
 [data-theme="light"] {
     color-scheme: light;
 
-    /* Soft, Low-Glare, Paper-Like Light Palette (No Pure White #FFFFFF, No Pure Black) */
-    --bg-base: #EEEAE2;
-    --bg-sidebar: #E6E1D7;
-    --bg-card: #F4F1EA;
-    --bg-card-hover: #EBE7DF;
-    --bg-input: #F1EEE7;
-    --bg-elevated: #F4F1EA;
-    --bg-hover: rgba(60, 50, 30, 0.06);
+    /* Soft Ivory Light — calm paper-like surfaces, no pure white, no glare */
+    --bg-base: #f3f1ec;
+    --bg-sidebar: #eae7e0;
+    --bg-card: #faf9f6;
+    --bg-card-hover: #f1efe9;
+    --bg-input: #f4f2ec;
+    --bg-elevated: #faf9f6;
+    --bg-hover: rgba(65, 60, 50, 0.05);
 
-    /* Accent & Active Item */
-    --accent: #4A74C9;
-    --accent-hover: #3E65B3;
-    --accent-subtle: rgba(74, 116, 201, 0.12);
-    --accent-text: #F7F5F0;
-    --accent-sidebar-active: #4A74C9;
+    /* Muted Indigo Accent (shared with dark — one calm brand color) */
+    --accent: #5b7fdb;
+    --accent-hover: #4a6dc7;
+    --accent-subtle: rgba(91, 127, 219, 0.12);
+    --accent-text: #f7f6f3;
+    --accent-sidebar-active: #4a6dc7;
 
-    /* Semantic Status Colors */
-    --status-active: #4A74C9;
-    --status-active-bg: rgba(74, 116, 201, 0.12);
-    --status-active-text: #4A74C9;
-    --status-success: #3F8A5C;
+    /* Softened Semantic Status Colors */
+    --status-active: #5b7fdb;
+    --status-active-bg: rgba(91, 127, 219, 0.12);
+    --status-active-text: #4464b5;
+    --status-success: #3f8a5c;
     --status-success-bg: rgba(63, 138, 92, 0.12);
-    --status-success-text: #2D6743;
-    --status-warning: #B07A2A;
+    --status-success-text: #356f4d;
+    --status-warning: #b07a2a;
     --status-warning-bg: rgba(176, 122, 42, 0.12);
-    --status-warning-text: #8A5B15;
-    --status-danger: #BC4F47;
+    --status-warning-text: #8a5b15;
+    --status-danger: #bc4f47;
     --status-danger-bg: rgba(188, 79, 71, 0.12);
-    --status-danger-text: #B44239;
-    --status-queued: #6A655A;
-    --status-queued-bg: rgba(106, 101, 90, 0.12);
-    --status-queued-text: #5A564C;
+    --status-danger-text: #b44239;
+    --status-queued: #7a756a;
+    --status-queued-bg: rgba(122, 117, 106, 0.12);
+    --status-queued-text: #6a655a;
 
-    /* Text Colors (contrast verified for WCAG AA) */
-    --text-main: #2C2A26;
-    --text-muted: #6A655A;
-    --text-dim: #6A655A;
-    --text-disabled: #9A9488;
+    /* Text Colors (graduated warm greys — AA contrast, no near-black) */
+    --text-main: #37342e;
+    --text-muted: #777266;
+    --text-dim: #8a8578;
+    --text-disabled: #a39d90;
 
     /* Borders & Dividers */
-    --border-color: #D5CFC2;
-    --border-hover: #C5BEAF;
-    --border-active: rgba(74, 116, 201, 0.45);
+    --border-color: #d9d4c9;
+    --border-hover: #c8c2b4;
+    --border-active: rgba(91, 127, 219, 0.45);
 
     /* Component & Control Tokens */
-    --btn-secondary-bg: #F4F1EA;
-    --btn-secondary-hover: #EBE7DF;
-    --btn-secondary-border: #D5CFC2;
-    --btn-secondary-text: #3D64B0;
+    --btn-secondary-bg: #f4f2ec;
+    --btn-secondary-hover: #ebe8e1;
+    --btn-secondary-border: #d9d4c9;
+    --btn-secondary-text: #4464b5;
 
-    --badge-bg: rgba(60, 50, 30, 0.08);
-    --progress-track: #DDD7CA;
-    --scrollbar-thumb: rgba(60, 50, 30, 0.18);
-    --scrollbar-thumb-hover: rgba(60, 50, 30, 0.30);
+    --badge-bg: rgba(65, 60, 50, 0.07);
+    --progress-track: #ddd8cd;
+    --scrollbar-thumb: rgba(65, 60, 50, 0.18);
+    --scrollbar-thumb-hover: rgba(65, 60, 50, 0.30);
 
     /* Subtle Low-Glare Shadows */
-    --shadow-card: 0 1px 3px rgba(60, 50, 30, 0.10);
-    --shadow-modal: 0 12px 32px rgba(60, 50, 30, 0.16);
-    --modal-backdrop: rgba(44, 42, 38, 0.45);
+    --shadow-card: 0 1px 3px rgba(65, 60, 50, 0.10);
+    --shadow-modal: 0 12px 32px rgba(65, 60, 50, 0.16);
+    --modal-backdrop: rgba(48, 45, 40, 0.42);
 
-    --kbd-bg: rgba(60, 50, 30, 0.08);
-    --kbd-text: #6A655A;
+    --kbd-bg: rgba(65, 60, 50, 0.08);
+    --kbd-text: #777266;
 
-    --metric-speed: #4A74C9;
-    --metric-eta: #6A655A;
+    --metric-speed: #4464b5;
+    --metric-eta: #777266;
 
-    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236A655A' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232C2A26' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23777266' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2337342e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 /* ==========================================================================
@@ -353,9 +353,81 @@ body,
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 14px 10px;
+    padding: 10px 10px;
     overflow-y: auto;
+    overflow-x: hidden;
     flex-shrink: 0;
+    transition: width 0.18s ease, padding 0.18s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Sidebar collapse header (toggle sits inside the sidebar, scrolls with it) */
+.sidebar-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 2px 4px 6px;
+    margin-bottom: 6px;
+}
+
+.sidebar-toggle {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.sidebar-toggle svg {
+    width: 13px;
+    height: 13px;
+    transition: transform 0.18s ease;
+}
+
+.sidebar.collapsed .sidebar-toggle svg {
+    transform: rotate(180deg);
+}
+
+/* Collapsed = icon-only rail. Labels and counts hide, icons stay tappable,
+   tooltips (title attributes) carry the names. */
+.sidebar.collapsed {
+    width: 52px;
+    padding: 10px 6px;
+}
+
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-section-title,
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .badge,
+.sidebar.collapsed .storage-label,
+.sidebar.collapsed .storage-path {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-section {
+    margin-bottom: 14px;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.sidebar.collapsed .sidebar-footer {
+    padding: 8px 2px;
+    justify-content: center;
 }
 
 .sidebar-section {
@@ -919,7 +991,8 @@ body,
     color: var(--status-warning-text);
 }
 
-.status-pill.status-queued {
+.status-pill.status-queued,
+.status-pill.status-scheduled {
     background: var(--status-queued-bg);
     color: var(--status-queued-text);
 }
@@ -1016,6 +1089,8 @@ body,
     font-size: 11px;
     color: var(--status-danger-text);
     word-break: break-all;
+    user-select: text;
+    cursor: text;
 }
 
 /* ==========================================================================
@@ -1189,14 +1264,14 @@ body,
     border-radius: 9px;
     padding: 9px 12px;
     background: transparent;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font: 600 13px/1.2 var(--font-sans);
     cursor: pointer;
 }
 
 .settings-tab.active {
     background: var(--bg-hover);
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 .hidden-sites-list {
@@ -1217,14 +1292,14 @@ body,
 }
 
 .hidden-site-domain {
-    color: var(--text-primary);
+    color: var(--text-main);
     font: 600 13px/1.3 var(--font-mono);
     overflow-wrap: anywhere;
 }
 
 .hidden-sites-empty {
     padding: 18px 12px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     text-align: center;
     font-size: 13px;
 }

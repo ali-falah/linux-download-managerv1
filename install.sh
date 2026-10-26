@@ -126,6 +126,7 @@ install_binary() {
 
 install_extension() {
   log "Copying browser extension → ${EXT_DIR}"
+  rm -rf "${EXT_DIR}"
   mkdir -p "${EXT_DIR}"
   cp browser/chromium/manifest.json     "${EXT_DIR}/"
   cp browser/chromium/service-worker.js "${EXT_DIR}/"

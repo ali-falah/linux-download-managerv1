@@ -49,6 +49,13 @@ let currentBrowserDownload = null;
 document.addEventListener("DOMContentLoaded", async () => {
     initTheme();
     initEventListeners();
+    loadViewState();
+    markSidebarActive();
+    const sortSelect = document.getElementById("sort-select");
+    if (sortSelect) {
+        sortSelect.value = sortBy;
+        sortSelect.dispatchEvent(new Event("sync"));
+    }
     await loadSettings();
     await loadDownloads();
     initRealtimeListeners();
@@ -56,6 +63,72 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ── Event Listeners ─────────────────────────────────────────────────────────
+
+const SORT_OPTIONS = ["newest", "oldest", "name", "size"];
+const STATUS_FILTERS = ["all", "in_progress", "queued", "paused", "completed", "failed"];
+const CATEGORY_FILTERS = ["all", "video", "audio", "archive", "document", "image", "other"];
+
+function saveViewState() {
+    try {
+        localStorage.setItem("ldm_sort", sortBy);
+        localStorage.setItem("ldm_filter", currentFilter);
+        localStorage.setItem("ldm_category", currentCategory);
+    } catch (_) {}
+}
+
+function loadViewState() {
+    try {
+        const sort = localStorage.getItem("ldm_sort");
+        if (SORT_OPTIONS.includes(sort)) sortBy = sort;
+        const filter = localStorage.getItem("ldm_filter");
+        if (STATUS_FILTERS.includes(filter)) currentFilter = filter;
+        const category = localStorage.getItem("ldm_category");
+        if (CATEGORY_FILTERS.includes(category)) currentCategory = category;
+    } catch (_) {}
+}
+
+// Reflect persisted view state onto the sidebar nav buttons (initial DOM
+// hard-codes "All Downloads" and the status section as active).
+function markSidebarActive() {
+    document.querySelectorAll(".sidebar-nav [data-filter]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.filter === currentFilter);
+    });
+    document.querySelectorAll(".sidebar-nav [data-category]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.category === currentCategory);
+    });
+}
+
+// ── Sidebar Collapse ────────────────────────────────────────────────────────
+
+function setSidebarCollapsed(collapsed) {
+    const sidebar = document.getElementById("app-sidebar");
+    const btn = document.getElementById("sidebar-collapse-btn");
+    if (!sidebar) return;
+    sidebar.classList.toggle("collapsed", collapsed);
+    if (btn) {
+        btn.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+        btn.setAttribute("aria-label", btn.title);
+        btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    }
+    try {
+        localStorage.setItem("ldm_sidebar_collapsed", collapsed ? "1" : "0");
+    } catch (_) {}
+}
+
+function initSidebarCollapse() {
+    const btn = document.getElementById("sidebar-collapse-btn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+        const sidebar = document.getElementById("app-sidebar");
+        setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
+    });
+    // Collapsed by default; a remembered preference wins afterwards.
+    let stored = null;
+    try {
+        stored = localStorage.getItem("ldm_sidebar_collapsed");
+    } catch (_) {}
+    setSidebarCollapsed(stored === null || stored === "1");
+}
 
 function initEventListeners() {
     // Topbar
@@ -74,12 +147,16 @@ function initEventListeners() {
     // Initialize custom dropdowns (replaces native dark GTK menu)
     initCustomDropdowns();
 
+    // Collapsible sidebar (collapsed by default)
+    initSidebarCollapse();
+
     // Sidebar status filters
     document.querySelectorAll(".sidebar-nav [data-filter]").forEach((btn) => {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".sidebar-nav [data-filter]").forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
             currentFilter = btn.dataset.filter;
+            saveViewState();
             renderDownloadsList();
         });
     });
@@ -90,12 +167,13 @@ function initEventListeners() {
             document.querySelectorAll(".sidebar-nav [data-category]").forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
             currentCategory = btn.dataset.category;
+            saveViewState();
             renderDownloadsList();
         });
     });
 
-    // Open default download directory from sidebar
-    document.getElementById("sidebar-open-folder-btn").addEventListener("click", async () => {
+    // Open default download directory from the sidebar (path label or folder button)
+    async function openDefaultFolder() {
         if (appSettings?.defaultDownloadDir) {
             try {
                 await invoke("open_folder", { path: appSettings.defaultDownloadDir });
@@ -104,7 +182,9 @@ function initEventListeners() {
                 showToast("Could not open folder: " + err, "error");
             }
         }
-    });
+    }
+    document.getElementById("sidebar-open-folder-btn").addEventListener("click", openDefaultFolder);
+    document.getElementById("sidebar-download-dir").addEventListener("click", openDefaultFolder);
 
     // Search and Sort
     const searchInput = document.getElementById("search-input");
@@ -125,10 +205,11 @@ function initEventListeners() {
 
     document.getElementById("sort-select").addEventListener("change", (e) => {
         sortBy = e.target.value;
+        saveViewState();
         renderDownloadsList();
     });
 
-    document.getElementById("clear-completed-btn").addEventListener("click", clearCompletedDownloads);
+    document.getElementById("clear-completed-btn").addEventListener("click", openClearFinishedModal);
 
     // New Download Modal
     document.getElementById("modal-close-btn").addEventListener("click", closeNewDownloadModal);
@@ -158,6 +239,21 @@ function initEventListeners() {
     document.getElementById("browser-download-browse").addEventListener("click", browseBrowserDownloadLocation);
     document.getElementById("browser-download-cancel").addEventListener("click", closeBrowserDownloadDialog);
     document.getElementById("browser-download-close").addEventListener("click", closeBrowserDownloadDialog);
+    document.getElementById("bd-inspect-btn").addEventListener("click", inspectBrowserDownloadUrl);
+    document.getElementById("bd-start-all-btn").addEventListener("click", startAllBrowserDownloads);
+    document.getElementById("bd-browser-handle-btn").addEventListener("click", letBrowserHandleDownload);
+    document.getElementById("browser-download-filename").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            startBrowserDownloadFromDialog();
+        }
+    });
+    document.getElementById("browser-download-modal").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            startBrowserDownloadFromDialog();
+        }
+    });
     document.getElementById("settings-max-concurrent").addEventListener("input", (e) => {
         document.getElementById("concurrent-display").textContent = e.target.value;
     });
@@ -178,7 +274,12 @@ function initEventListeners() {
 
     document.getElementById("btn-open-ext-folder").addEventListener("click", async () => {
         try {
-            await invoke("open_folder", { path: `${appSettings?.defaultDownloadDir || ""}/../Documents/Linux Download Manager Extension` });
+            const folder = await invoke("extension_folder");
+            if (!folder) {
+                showToast("Extension folder not found — re-run ./install.sh", "error");
+                return;
+            }
+            await invoke("open_folder", { path: folder });
             showToast("Opened extension folder", "info");
         } catch (err) {
             showToast("Could not open extension folder", "error");
@@ -190,6 +291,21 @@ function initEventListeners() {
     document.getElementById("delete-cancel-btn").addEventListener("click", closeDeleteModal);
     document.getElementById("delete-confirm-btn").addEventListener("click", confirmDeleteDownload);
 
+    // Clear Finished Modal
+    document.getElementById("clear-finished-close-btn").addEventListener("click", closeClearFinishedModal);
+    document.getElementById("clear-finished-cancel-btn").addEventListener("click", closeClearFinishedModal);
+    document.getElementById("clear-finished-confirm-btn").addEventListener("click", confirmClearFinished);
+
+    // Browser download dialog: copy URL
+    document.getElementById("bd-copy-url-btn").addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(document.getElementById("browser-download-url").value);
+            showToast("URL copied to clipboard", "info");
+        } catch (err) {
+            showToast("Could not copy URL: " + err, "error");
+        }
+    });
+
     // Keyboard Shortcuts
     window.addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n") {
@@ -199,7 +315,7 @@ function initEventListeners() {
             e.preventDefault();
             searchInput.focus();
         } else if (e.key === "Escape") {
-            closeAllModals();
+            closeTopmostModal(e);
         }
     });
 }
@@ -242,6 +358,9 @@ function openSettingsModal() {
 
 function closeSettingsModal() {
     document.getElementById("settings-modal").hidden = true;
+    // Revert the unsaved folder pick (theme is reverted the same way).
+    document.getElementById("settings-download-dir").textContent =
+        appSettings?.defaultDownloadDir || "~/Downloads";
     applyTheme(getSavedTheme());
     const themeSelect = document.getElementById("settings-theme-select");
     if (themeSelect) {
@@ -262,11 +381,64 @@ function closeDeleteModal() {
     document.getElementById("delete-modal").hidden = true;
 }
 
-function closeAllModals() {
-    closeNewDownloadModal();
-    closeSettingsModal();
-    closeDeleteModal();
-    closeBrowserDownloadDialog();
+// Esc behaves like a normal desktop app: it closes only the topmost visible
+// modal and defers to other Esc consumers first (custom dropdown menus).
+// The browser-download confirm dialog is excluded on purpose: dismissing it
+// cancels a pending download, so that decision stays with the explicit
+// Cancel button.
+const MODAL_STACK = ["settings-modal", "new-download-modal", "clear-finished-modal", "delete-modal", "browser-download-modal"];
+
+function closeTopmostModal(event) {
+    // Let Esc first close any open custom dropdown menu instead of the modal.
+    const openDropdown = document.querySelector(".custom-dropdown.open");
+    if (openDropdown) {
+        openDropdown.classList.remove("open");
+        const btn = openDropdown.querySelector(".custom-dropdown-btn");
+        if (btn) btn.setAttribute("aria-expanded", "false");
+        return;
+    }
+
+    const openIds = MODAL_STACK.filter((id) => !document.getElementById(id).hidden);
+    if (!openIds.length) return;
+    // Last match in the stack order = visually topmost.
+    const topId = openIds[openIds.length - 1];
+
+    switch (topId) {
+        case "settings-modal":
+            closeSettingsModal();
+            break;
+        case "new-download-modal":
+            closeNewDownloadModal();
+            break;
+        case "clear-finished-modal":
+            closeClearFinishedModal();
+            break;
+        case "delete-modal":
+            closeDeleteModal();
+            break;
+        case "browser-download-modal":
+            // Intentionally ignored — explicit Cancel only.
+            break;
+    }
+    if (event) event.preventDefault();
+}
+
+function resetBrowserDownloadMetadata() {
+    document.getElementById("bd-metadata-panel").hidden = true;
+    const inspectBtn = document.getElementById("bd-inspect-btn");
+    if (inspectBtn) {
+        inspectBtn.textContent = "Inspect";
+        inspectBtn.disabled = false;
+    }
+}
+
+function deriveFilenameFromUrl(url) {
+    try {
+        const pathname = new URL(url).pathname;
+        const lastSegment = pathname.split("/").pop();
+        if (lastSegment && lastSegment.includes(".")) return decodeURIComponent(lastSegment);
+    } catch (_) {}
+    return "";
 }
 
 function showNextBrowserDownload() {
@@ -274,16 +446,66 @@ function showNextBrowserDownload() {
     const modal = document.getElementById("browser-download-modal");
     if (!currentBrowserDownload) {
         modal.hidden = true;
+        syncBrowserDialogFocus();
         return;
     }
-    document.getElementById("browser-download-url").value = currentBrowserDownload.url || "";
+
+    const url = currentBrowserDownload.url || "";
+    document.getElementById("browser-download-url").value = url;
     document.getElementById("browser-download-location").value = currentBrowserDownload.saveDir || appSettings?.defaultDownloadDir || "";
-    document.getElementById("browser-download-filename").value = currentBrowserDownload.sourceTitle || "Download";
+    document.getElementById("browser-download-filename").value = currentBrowserDownload.sourceTitle || deriveFilenameFromUrl(url) || "Download";
+
+    // Source page display
+    const sourcePageEl = document.getElementById("bd-source-page");
+    const sourcePageValue = document.getElementById("bd-source-page-value");
+    if (currentBrowserDownload.sourcePageUrl) {
+        try {
+            sourcePageValue.textContent = new URL(currentBrowserDownload.sourcePageUrl).hostname;
+        } catch (_) {
+            sourcePageValue.textContent = currentBrowserDownload.sourcePageUrl;
+        }
+        sourcePageEl.hidden = false;
+    } else {
+        sourcePageEl.hidden = true;
+    }
+
+    // Queue counter
+    const queueCounter = document.getElementById("bd-queue-counter");
+    const remaining = pendingBrowserDownloads.length;
+    if (remaining > 0) {
+        queueCounter.textContent = `1 of ${remaining + 1}`;
+        queueCounter.hidden = false;
+    } else {
+        queueCounter.hidden = true;
+    }
+
+    // Start All button visibility
+    document.getElementById("bd-start-all-btn").hidden = remaining === 0;
+
+    resetBrowserDownloadMetadata();
     modal.hidden = false;
+    document.getElementById("browser-download-filename").focus();
+
+    // IDM-style: the window this dialog lives in should be in front of
+    // everything while a confirmation is pending (it also re-shows/focuses
+    // the app if the browser triggered this while we're in the background).
+    syncBrowserDialogFocus();
+
+    // Auto-probe file details so they are never left empty; the Inspect
+    // button stays available as a manual retry.
+    performBrowserDownloadInspect(true);
+}
+
+// Keep the always-on-top pin in sync with the confirm dialog's visibility.
+// Every queue transition funnels through showNextBrowserDownload.
+function syncBrowserDialogFocus() {
+    const visible = !document.getElementById("browser-download-modal").hidden;
+    invoke("set_browser_dialog_focus", { active: visible }).catch(() => {});
 }
 
 function closeBrowserDownloadDialog() {
     currentBrowserDownload = null;
+    resetBrowserDownloadMetadata();
     showNextBrowserDownload();
 }
 
@@ -296,15 +518,124 @@ async function startBrowserDownloadFromDialog() {
     const button = document.getElementById("browser-download-start");
     button.disabled = true;
     try {
+        const editedFilename = document.getElementById("browser-download-filename").value.trim();
+        if (editedFilename) currentBrowserDownload.sourceTitle = editedFilename;
         await invoke("start_browser_download", { request: currentBrowserDownload, saveDir });
         showToast("Download added to the queue", "success");
         currentBrowserDownload = null;
+        resetBrowserDownloadMetadata();
         showNextBrowserDownload();
     } catch (error) {
         showToast("Could not start download: " + error, "error");
     } finally {
         button.disabled = false;
     }
+}
+
+// Stale-response guard: only the newest probe is allowed to write the UI
+// (protects against auto-inspect and a manual Inspect click racing).
+let browserInspectRun = 0;
+
+async function performBrowserDownloadInspect(silent) {
+    if (!currentBrowserDownload) return;
+    const url = currentBrowserDownload.url;
+    if (!url) return;
+
+    const run = ++browserInspectRun;
+    const btn = document.getElementById("bd-inspect-btn");
+    if (!silent) {
+        btn.textContent = "Inspecting…";
+        btn.disabled = true;
+    }
+
+    // Placeholder while probing, so the card never shows stale data.
+    const panel = document.getElementById("bd-metadata-panel");
+    panel.hidden = false;
+    document.getElementById("bd-size").textContent = "Checking…";
+    document.getElementById("bd-type").textContent = "Checking…";
+    document.getElementById("bd-resumable").textContent = "Checking…";
+
+    try {
+        const meta = await invoke("inspect_url", { url });
+        if (run !== browserInspectRun) return;
+
+        document.getElementById("bd-size").textContent = meta.contentLength
+            ? formatBytes(meta.contentLength)
+            : "Unknown / Stream";
+        document.getElementById("bd-type").textContent = meta.contentType || "Binary";
+        document.getElementById("bd-resumable").textContent = meta.resumable ? "Yes" : "No";
+
+        const badge = document.getElementById("bd-resumable-badge");
+        badge.textContent = meta.resumable ? "Resumable: Yes" : "Resumable: No";
+        badge.style.color = meta.resumable ? "var(--status-success)" : "var(--status-warning)";
+        badge.style.background = meta.resumable ? "var(--status-success-bg)" : "var(--status-warning-bg)";
+
+        // Inspect returns the server-suggested filename (Content-Disposition); always use it
+        if (meta.suggestedFileName) {
+            document.getElementById("browser-download-filename").value = meta.suggestedFileName;
+        }
+    } catch (error) {
+        if (run !== browserInspectRun) return;
+
+        // Leave honest dashes so the user knows to retry with Inspect.
+        document.getElementById("bd-size").textContent = "—";
+        document.getElementById("bd-type").textContent = "—";
+        document.getElementById("bd-resumable").textContent = "—";
+        const badge = document.getElementById("bd-resumable-badge");
+        badge.textContent = "Resumable: —";
+        badge.style.color = "";
+        badge.style.background = "";
+        if (!silent) showToast("Could not inspect URL: " + error, "error");
+    } finally {
+        if (!silent) {
+            btn.textContent = "Inspect";
+            btn.disabled = false;
+        }
+    }
+}
+
+function inspectBrowserDownloadUrl() {
+    return performBrowserDownloadInspect(false);
+}
+
+async function startAllBrowserDownloads() {
+    const saveDir = document.getElementById("browser-download-location").value.trim() || appSettings?.defaultDownloadDir || "";
+    if (!saveDir) {
+        showToast("Enter a save location to continue", "error");
+        return;
+    }
+
+    const allRequests = [currentBrowserDownload, ...pendingBrowserDownloads].filter(Boolean);
+    pendingBrowserDownloads.length = 0;
+    currentBrowserDownload = null;
+    document.getElementById("browser-download-modal").hidden = true;
+    resetBrowserDownloadMetadata();
+    syncBrowserDialogFocus();
+
+    let started = 0;
+    for (const req of allRequests) {
+        try {
+            await invoke("start_browser_download", { request: req, saveDir });
+            started++;
+        } catch (error) {
+            showToast(`Could not start ${req.sourceTitle || "download"}: ${error}`, "error");
+        }
+    }
+    if (started > 0) showToast(`${started} download${started > 1 ? "s" : ""} added to the queue`, "success");
+}
+
+async function letBrowserHandleDownload() {
+    if (!currentBrowserDownload) return;
+    const url = currentBrowserDownload.url;
+    try {
+        await invoke("open_url", { url });
+        showToast("Opened in browser", "info");
+    } catch (error) {
+        showToast("Could not open in browser: " + error, "error");
+    }
+    currentBrowserDownload = null;
+    resetBrowserDownloadMetadata();
+    showNextBrowserDownload();
 }
 
 async function browseBrowserDownloadLocation() {
@@ -600,12 +931,20 @@ async function saveSettings() {
     const maxConcurrent = parseInt(document.getElementById("settings-max-concurrent").value);
     const bandwidthLimit = parseInt(document.getElementById("settings-bandwidth-limit").value) || 0;
 
+    const args = {
+        maxConcurrentDownloads: maxConcurrent,
+        defaultBandwidthLimitKbps: bandwidthLimit,
+        askBrowserDownloadLocation: document.getElementById("settings-ask-browser-location").checked,
+    };
+
+    // Only send the folder when the user actually picked a new one.
+    const pickedDir = document.getElementById("settings-download-dir").textContent.trim();
+    if (pickedDir && pickedDir !== (appSettings?.defaultDownloadDir || "")) {
+        args.defaultDownloadDir = pickedDir;
+    }
+
     try {
-        await invoke("update_app_settings", {
-            maxConcurrentDownloads: maxConcurrent,
-            defaultBandwidthLimitKbps: bandwidthLimit,
-            askBrowserDownloadLocation: document.getElementById("settings-ask-browser-location").checked,
-        });
+        await invoke("update_app_settings", args);
 
         const themeSelect = document.getElementById("settings-theme-select");
         if (themeSelect) {
@@ -620,10 +959,12 @@ async function saveSettings() {
         }
 
         showToast("Settings saved", "success");
-        closeSettingsModal();
         await loadSettings();
+        closeSettingsModal();
     } catch (error) {
         showToast("Could not save settings: " + error, "error");
+        // Revert the folder display (and everything else) to persisted values.
+        await loadSettings();
     }
 }
 
@@ -643,7 +984,22 @@ async function loadDownloads() {
     }
 }
 
-async function clearCompletedDownloads() {
+function openClearFinishedModal() {
+    const finishedCount = allDownloads.filter((d) => d.status === "completed" || d.status === "failed").length;
+    if (finishedCount === 0) {
+        showToast("No finished items to clear", "info");
+        return;
+    }
+    document.getElementById("clear-finished-count").textContent = finishedCount;
+    document.getElementById("clear-finished-modal").hidden = false;
+}
+
+function closeClearFinishedModal() {
+    document.getElementById("clear-finished-modal").hidden = true;
+}
+
+async function confirmClearFinished() {
+    closeClearFinishedModal();
     try {
         const count = await invoke("clear_completed");
         showToast(`Cleared ${count} finished item${count === 1 ? "" : "s"}`, "info");
@@ -688,6 +1044,12 @@ async function togglePauseAll() {
 
 // ── Rendering Download Items ────────────────────────────────────────────────
 
+// Skip re-rendering when nothing visually relevant changed. The adaptive
+// poll runs every 800 ms during active downloads; live byte/speed updates
+// are patched into card DOM directly elsewhere, so a full innerHTML rebuild
+// on every tick only destroys hover/focus states and wastes cycles.
+let lastRenderSignature = null;
+
 function renderDownloadsList() {
     const container = document.getElementById("downloads-container");
 
@@ -697,9 +1059,11 @@ function renderDownloadsList() {
         if (!validIds.has(key)) liveDownloadStats.delete(key);
     }
 
-    // Filter
+    // Filter (scheduled items count as queued in the sidebar, so include them)
     let filtered = allDownloads.filter((dl) => {
-        if (currentFilter !== "all" && dl.status !== currentFilter) return false;
+        if (currentFilter !== "all" && dl.status !== currentFilter) {
+            if (!(currentFilter === "queued" && dl.status === "scheduled")) return false;
+        }
         if (currentCategory !== "all") {
             const cat = categorizeFile(dl.fileName);
             if (cat !== currentCategory) return false;
@@ -721,6 +1085,13 @@ function renderDownloadsList() {
         return 0;
     });
 
+    const signature = [
+        currentFilter, currentCategory, searchQuery, sortBy,
+        ...filtered.map((dl) => [dl.id, dl.status, dl.fileName, dl.totalBytes, dl.checksumStatus || "", dl.errorMessage || ""].join("|")),
+    ].join(";");
+    if (signature === lastRenderSignature) return;
+    lastRenderSignature = signature;
+
     if (filtered.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
@@ -732,7 +1103,7 @@ function renderDownloadsList() {
                     </svg>
                 </div>
                 <div class="empty-state-title">${searchQuery ? "No matching downloads" : "No downloads in this view"}</div>
-                <div class="empty-state-desc">${searchQuery ? "Try a different search keyword." : "Click New Download to start downloading."}</div>
+                <div class="empty-state-desc">${searchQuery ? "Try a different search keyword." : "Click New Download to start, or set up the browser extension from Settings."}</div>
                 ${!searchQuery ? `<button class="btn btn-primary" onclick="openNewDownloadModal()">+ New Download</button>` : ""}
             </div>
         `;
@@ -879,10 +1250,13 @@ function renderDownloadCard(dl) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                 <span>Folder</span>
             </button>
-            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy download URL">
+            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-path" data-path="${escapeAttr(dl.savePath)}" title="Copy file path" aria-label="Copy file path">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+            </button>
+            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy download URL" aria-label="Copy download URL">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </button>
-            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="delete" data-id="${dl.id}" data-name="${escapeAttr(dl.fileName)}" title="Remove download">
+            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="delete" data-id="${dl.id}" data-name="${escapeAttr(dl.fileName)}" title="Remove download" aria-label="Remove download">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
         `;
@@ -892,7 +1266,7 @@ function renderDownloadCard(dl) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                 <span>Pause</span>
             </button>
-            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy link">
+            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy link" aria-label="Copy link">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </button>
             <button class="btn btn-danger btn-sm" data-action="cancel" data-id="${dl.id}" title="Cancel download">Cancel</button>
@@ -904,10 +1278,13 @@ function renderDownloadCard(dl) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                 <span>Resume</span>
             </button>
-            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy link">
+            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-path" data-path="${escapeAttr(dl.savePath)}" title="Copy file path" aria-label="Copy file path">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+            </button>
+            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy link" aria-label="Copy link">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </button>
-            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="delete" data-id="${dl.id}" data-name="${escapeAttr(dl.fileName)}" title="Remove">
+            <button class="btn btn-ghost btn-sm btn-icon-only" data-action="delete" data-id="${dl.id}" data-name="${escapeAttr(dl.fileName)}" title="Remove" aria-label="Remove download">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
         `;
@@ -989,6 +1366,9 @@ function attachCardActionHandlers() {
                     await invoke("open_file", { path });
                 } else if (action === "open-folder") {
                     await invoke("open_folder", { path });
+                } else if (action === "copy-path") {
+                    await navigator.clipboard.writeText(path);
+                    showToast("File path copied to clipboard", "info");
                 } else if (action === "copy-link") {
                     await navigator.clipboard.writeText(url);
                     showToast("Link copied to clipboard", "info");
@@ -1131,7 +1511,7 @@ function startStatsTicker() {
             speedEl.textContent = formatSpeed(totalSpeed);
             pulseEl.classList.add("active");
         } else {
-            speedEl.textContent = "0.0 KB/s";
+            speedEl.textContent = formatBytes(0);
             pulseEl.classList.remove("active");
         }
 
@@ -1167,6 +1547,7 @@ function updateCounts() {
         archive: 0,
         document: 0,
         image: 0,
+        other: 0,
     };
 
     for (const dl of allDownloads) {
@@ -1189,11 +1570,17 @@ function updateCounts() {
     document.getElementById("count-completed").textContent = counts.completed;
     document.getElementById("count-failed").textContent = counts.failed;
 
-    document.getElementById("cat-video").textContent = catCounts.video;
-    document.getElementById("cat-audio").textContent = catCounts.audio;
-    document.getElementById("cat-archive").textContent = catCounts.archive;
-    document.getElementById("cat-document").textContent = catCounts.document;
-    document.getElementById("cat-image").textContent = catCounts.image;
+    const catElements = {
+        "cat-video": document.getElementById("cat-video"),
+        "cat-audio": document.getElementById("cat-audio"),
+        "cat-archive": document.getElementById("cat-archive"),
+        "cat-document": document.getElementById("cat-document"),
+        "cat-image": document.getElementById("cat-image"),
+        "cat-other": document.getElementById("cat-other"),
+    };
+    for (const [id, el] of Object.entries(catElements)) {
+        if (el) el.textContent = catCounts[id.replace("cat-", "")] ?? 0;
+    }
 }
 
 // ── File Categorization & Utilities ─────────────────────────────────────────
@@ -1281,9 +1668,24 @@ function escapeAttr(text) {
 
 // ── Toasts ──────────────────────────────────────────────────────────────────
 
+const MAX_VISIBLE_TOASTS = 5;
+
+function dismissToast(toast) {
+    clearTimeout(toast._timer);
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(6px)";
+    toast.style.transition = "all 0.2s ease";
+    setTimeout(() => toast.remove(), 200);
+}
+
 function showToast(message, type = "info", duration = 2800) {
     const container = document.getElementById("toast-container");
     if (!container) return;
+
+    // Cap the stack so a burst (e.g. "Start All") doesn't flood the corner.
+    while (container.children.length >= MAX_VISIBLE_TOASTS) {
+        container.firstElementChild.remove();
+    }
 
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
@@ -1302,12 +1704,15 @@ function showToast(message, type = "info", duration = 2800) {
         <span>${escapeHtml(message)}</span>
     `;
 
-    container.appendChild(toast);
+    toast._timer = setTimeout(() => dismissToast(toast), duration);
+    // Click anywhere on the toast to dismiss it.
+    toast.addEventListener("click", () => dismissToast(toast));
+    // Reading time: hold the timer while the pointer hovers.
+    toast.addEventListener("mouseenter", () => clearTimeout(toast._timer));
+    toast.addEventListener("mouseleave", () => {
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => dismissToast(toast), 1200);
+    });
 
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        toast.style.transform = "translateY(6px)";
-        toast.style.transition = "all 0.2s ease";
-        setTimeout(() => toast.remove(), 200);
-    }, duration);
+    container.appendChild(toast);
 }

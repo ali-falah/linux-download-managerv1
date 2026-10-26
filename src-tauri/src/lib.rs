@@ -142,6 +142,8 @@ pub fn run() {
             commands::pick_save_directory,
             commands::app_settings,
             commands::update_app_settings,
+            commands::extension_folder,
+            commands::set_browser_dialog_focus,
             commands::pause_download,
             commands::resume_download,
             commands::cancel_download,
@@ -149,7 +151,8 @@ pub fn run() {
             commands::system_status,
             commands::delete_download,
             commands::open_file,
-            commands::open_folder
+            commands::open_folder,
+            commands::open_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
