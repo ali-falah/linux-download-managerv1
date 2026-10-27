@@ -73,6 +73,9 @@ pub struct AppState {
     /// Whether a browser-download confirmation is waiting for the user.
     /// Stops the focus-retry loop as soon as the dialog is answered.
     pub browser_dialog_pending: AtomicBool,
+    /// Whether a failed-download attention summon is still unanswered.
+    /// Cleared as soon as the main window gains focus.
+    pub result_attention_pending: AtomicBool,
 }
 
 impl AppState {
@@ -129,6 +132,7 @@ impl AppState {
             live_metrics: Mutex::new(HashMap::new()),
             stopped_ids: Mutex::new(HashSet::new()),
             browser_dialog_pending: AtomicBool::new(false),
+            result_attention_pending: AtomicBool::new(false),
         })
     }
 
@@ -459,9 +463,10 @@ impl AppState {
 /// focus-stealing prevention, and some window managers skip a no-op
 /// "already on top" state — so we re-apply always-on-top, retry focus a few
 /// times over ~2 seconds, and demand user attention (taskbar urgency flash)
-/// on every attempt. Retries stop as soon as the confirmation dialog is
-/// answered (`browser_dialog_pending` cleared), so the window cannot keep
-/// nagging after the user has dealt with the dialog.
+/// on every attempt. Retries stop as soon as the reason for the summon is
+/// dealt with: either pending flag (`browser_dialog_pending` for the
+/// confirm dialog, `result_attention_pending` for a failed download) is
+/// cleared, so the window cannot keep nagging after the user has acted.
 pub fn summon_main_window(app_handle: &AppHandle) {
     let Some(window) = app_handle.get_webview_window("main") else {
         return;
@@ -479,10 +484,11 @@ pub fn summon_main_window(app_handle: &AppHandle) {
     tauri::async_runtime::spawn(async move {
         for delay_ms in [300u64, 900, 2000] {
             tokio::time::sleep(Duration::from_millis(delay_ms)).await;
-            let pending = app_handle
-                .state::<AppState>()
-                .browser_dialog_pending
-                .load(Ordering::Relaxed);
+            let pending = {
+                let state = app_handle.state::<AppState>();
+                state.browser_dialog_pending.load(Ordering::Relaxed)
+                    || state.result_attention_pending.load(Ordering::Relaxed)
+            };
             if !pending {
                 return;
             }
@@ -491,6 +497,20 @@ pub fn summon_main_window(app_handle: &AppHandle) {
             let _ = win.request_user_attention(Some(tauri::UserAttentionType::Critical));
         }
     });
+}
+
+/// Bring a completed/failed download in the user's face with the same
+/// full-force summon as the browser-download confirm: show, unminimize,
+/// always-on-top re-applied, focus, Critical urgency flash and a retry
+/// loop that keeps re-applying until the window gains focus (lib.rs then
+/// clears `result_attention_pending` and un-pins always-on-top — the
+/// summon is "answered" the moment the user actually looks at it).
+pub fn nudge_result_window(app_handle: &AppHandle) {
+    app_handle
+        .state::<AppState>()
+        .result_attention_pending
+        .store(true, Ordering::Relaxed);
+    summon_main_window(app_handle);
 }
 
 fn start_download_task(
@@ -692,6 +712,9 @@ async fn run_download(
                 "Download completed",
                 format!("{} download completed.", job.target_path.file_name().unwrap_or_default().to_string_lossy()),
             );
+            // User request: completed downloads get the same in-your-face
+            // summon as failures and the browser-download confirm.
+            nudge_result_window(app_handle);
         }
         Err(error) => {
             storage.set_status(job.id, "failed", 0, total_hint, Some(&error))?;
@@ -712,6 +735,7 @@ async fn run_download(
                 "Download failed",
                 format!("Download failed: {error}"),
             );
+            nudge_result_window(app_handle);
         }
     }
 

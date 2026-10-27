@@ -114,6 +114,20 @@ pub fn run() {
                             let _ = w.hide();
                         }
                     }
+                    // A failed-download summon is "answered" as soon as the
+                    // user actually looks at the window: stop the retry loop
+                    // and release the always-on-top pin it applied.
+                    if let WindowEvent::Focused(true) = event {
+                        let state = handle_for_window.state::<AppState>();
+                        if state
+                            .result_attention_pending
+                            .swap(false, std::sync::atomic::Ordering::Relaxed)
+                        {
+                            if let Some(w) = handle_for_window.get_webview_window("main") {
+                                let _ = w.set_always_on_top(false);
+                            }
+                        }
+                    }
                 });
             }
 

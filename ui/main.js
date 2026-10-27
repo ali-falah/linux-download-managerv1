@@ -1097,9 +1097,9 @@ function renderDownloadsList() {
             <div class="empty-state">
                 <div class="empty-state-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                        <path d="M12 17V3"></path>
+                        <path d="m6 11 6 6 6-6"></path>
+                        <path d="M19 21H5"></path>
                     </svg>
                 </div>
                 <div class="empty-state-title">${searchQuery ? "No matching downloads" : "No downloads in this view"}</div>
@@ -1247,14 +1247,14 @@ function renderDownloadCard(dl) {
                 <span>Open</span>
             </button>
             <button class="btn btn-secondary btn-sm" data-action="open-folder" data-path="${escapeAttr(dl.savePath)}" title="Open enclosing folder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>
                 <span>Folder</span>
             </button>
             <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-path" data-path="${escapeAttr(dl.savePath)}" title="Copy file path" aria-label="Copy file path">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
             </button>
             <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy download URL" aria-label="Copy download URL">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
             </button>
             <button class="btn btn-ghost btn-sm btn-icon-only" data-action="delete" data-id="${dl.id}" data-name="${escapeAttr(dl.fileName)}" title="Remove download" aria-label="Remove download">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -1263,11 +1263,11 @@ function renderDownloadCard(dl) {
     } else if (isDownloading || dl.status === "queued") {
         actions = `
             <button class="btn btn-secondary btn-sm" data-action="pause" data-id="${dl.id}" title="Pause download">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1" ry="1"></rect><rect x="14" y="4" width="4" height="16" rx="1" ry="1"></rect></svg>
                 <span>Pause</span>
             </button>
             <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy link" aria-label="Copy link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
             </button>
             <button class="btn btn-danger btn-sm" data-action="cancel" data-id="${dl.id}" title="Cancel download">Cancel</button>
         `;
@@ -1279,10 +1279,10 @@ function renderDownloadCard(dl) {
                 <span>Resume</span>
             </button>
             <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-path" data-path="${escapeAttr(dl.savePath)}" title="Copy file path" aria-label="Copy file path">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
             </button>
             <button class="btn btn-ghost btn-sm btn-icon-only" data-action="copy-link" data-url="${escapeAttr(dl.url)}" title="Copy link" aria-label="Copy link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
             </button>
             <button class="btn btn-ghost btn-sm btn-icon-only" data-action="delete" data-id="${dl.id}" data-name="${escapeAttr(dl.fileName)}" title="Remove" aria-label="Remove download">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -1415,6 +1415,41 @@ function initRealtimeListeners() {
     scheduleAdaptivePoll();
 }
 
+// In-app announcement for a finished download. Complements the backend
+// attention nudge: completion gets a normal toast with an "Open file"
+// action; failure is sticky (never auto-dismisses) because it needs the
+// user's decision.
+function announceFinishedDownload(event) {
+    const dl = allDownloads.find((d) => d.id === event.id);
+    const name = dl?.fileName || "Download";
+
+    if (event.status === "completed") {
+        const suffix = event.errorMessage ? ` (${event.errorMessage})` : "";
+        const actions = dl?.savePath
+            ? [{
+                  label: "Open file",
+                  onClick: () => {
+                      invoke("open_file", { path: dl.savePath }).catch((err) =>
+                          showToast("Could not open file: " + err, "error")
+                      );
+                  },
+              }]
+            : [];
+        showActionToast({
+            message: `${name} — download completed${suffix}`,
+            type: "success",
+            duration: 6000,
+            actions,
+        });
+    } else {
+        showActionToast({
+            message: `${name} — download failed${event.errorMessage ? `: ${event.errorMessage}` : ""}`,
+            type: "error",
+            sticky: true,
+        });
+    }
+}
+
 function handleDownloadStateEvent(event) {
     if (event.status === "in_progress") {
         const { speed, eta } = getComputedDownloadSpeedAndEta(
@@ -1433,6 +1468,9 @@ function handleDownloadStateEvent(event) {
     } else {
         liveDownloadStats.delete(event.id);
         clientDownloadTrackers.delete(event.id);
+        if (event.status === "completed" || event.status === "failed") {
+            announceFinishedDownload(event);
+        }
     }
 
     // Fast DOM update if card exists
@@ -1608,17 +1646,17 @@ function categorizeFile(filename) {
 function getCategorySvgIcon(cat) {
     switch (cat) {
         case "video":
-            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`;
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path><rect x="2" y="6" width="14" height="12" rx="2" ry="2"></rect></svg>`;
         case "audio":
-            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`;
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 10v3"></path><path d="M6 6v11"></path><path d="M10 3v18"></path><path d="M14 8v7"></path><path d="M18 5v13"></path><path d="M22 10v3"></path></svg>`;
         case "archive":
-            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>`;
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="11"></line></svg>`;
         case "document":
-            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`;
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>`;
         case "image":
-            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>`;
         default:
-            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
+            return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>`;
     }
 }
 
@@ -1678,6 +1716,16 @@ function dismissToast(toast) {
     setTimeout(() => toast.remove(), 200);
 }
 
+function toastIconSvg(type) {
+    if (type === "success") {
+        return `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    }
+    if (type === "error") {
+        return `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+    }
+    return `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+}
+
 function showToast(message, type = "info", duration = 2800) {
     const container = document.getElementById("toast-container");
     if (!container) return;
@@ -1689,21 +1737,53 @@ function showToast(message, type = "info", duration = 2800) {
 
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
-
-    let iconSvg = "";
-    if (type === "success") {
-        iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-    } else if (type === "error") {
-        iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
-    } else {
-        iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
-    }
-
     toast.innerHTML = `
-        ${iconSvg}
+        ${toastIconSvg(type)}
         <span>${escapeHtml(message)}</span>
     `;
+    startToastLifecycle(toast, duration);
+    container.appendChild(toast);
+}
 
+// Rich toast: optional sticky mode (never auto-dismisses — used for
+// failures that need the user's attention) and optional action buttons
+// (e.g. "Open file" on a completed download).
+function showActionToast({ message, type = "info", duration = 2800, sticky = false, actions = [] }) {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    while (container.children.length >= MAX_VISIBLE_TOASTS) {
+        container.firstElementChild.remove();
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        ${toastIconSvg(type)}
+        <span>${escapeHtml(message)}</span>
+        ${actions.map((action) => `<button class="toast-action">${escapeHtml(action.label)}</button>`).join("")}
+    `;
+
+    toast.querySelectorAll(".toast-action").forEach((btn, index) => {
+        btn.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            dismissToast(toast);
+            const action = actions[index];
+            if (action) action.onClick();
+        });
+    });
+
+    if (sticky) {
+        // Sticky toasts stay until clicked — they report something the user
+        // must at least acknowledge.
+        toast.addEventListener("click", () => dismissToast(toast));
+    } else {
+        startToastLifecycle(toast, duration);
+    }
+    container.appendChild(toast);
+}
+
+function startToastLifecycle(toast, duration) {
     toast._timer = setTimeout(() => dismissToast(toast), duration);
     // Click anywhere on the toast to dismiss it.
     toast.addEventListener("click", () => dismissToast(toast));
@@ -1713,6 +1793,4 @@ function showToast(message, type = "info", duration = 2800) {
         clearTimeout(toast._timer);
         toast._timer = setTimeout(() => dismissToast(toast), 1200);
     });
-
-    container.appendChild(toast);
 }

@@ -1,59 +1,62 @@
 /* ==========================================================================
-   Linux Download Manager — Clean & Minimal Design System
+   Linux Download Manager — "Iris" Design System
+   Inter + JetBrains Mono · violet-iris accent · cool slate / cool mist
    ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 :root,
 [data-theme="dark"] {
     color-scheme: dark;
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: "SF Mono", "Fira Code", "Roboto Mono", Consolas, monospace;
+    --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Roboto Mono", Consolas, monospace;
 
-    /* Soft Graphite Dark — calm neutral surfaces (no blue cast, no pure white) */
-    --bg-base: #14161a;
-    --bg-sidebar: #191c21;
-    --bg-card: #1e2127;
-    --bg-card-hover: #242830;
-    --bg-input: #171a1f;
-    --bg-elevated: #262a32;
-    --bg-hover: rgba(255, 255, 255, 0.05);
+    /* Obsidian Dark — deep violet-grey surfaces, calm & restful */
+    --bg-base: #141318;
+    --bg-sidebar: #1a191f;
+    --bg-card: #201f26;
+    --bg-card-hover: #27262f;
+    --bg-input: #1a1920;
+    --bg-elevated: #2b2a34;
+    --bg-hover: rgba(255, 255, 255, 0.055);
 
-    /* Muted Indigo Accent — trustworthy, low-contrast, calm in both themes */
-    --accent: #5b7fdb;
-    --accent-hover: #4a6dc7;
-    --accent-subtle: rgba(91, 127, 219, 0.14);
-    --accent-text: #f5f7fc;
-    --accent-sidebar-active: #8aa7e8;
+    /* Iris Accent — soft violet, distinctive from status colors */
+    --accent: #7b74e0;
+    --accent-hover: #6a62d0;
+    --accent-subtle: rgba(123, 116, 224, 0.15);
+    --accent-text: #f4f3fc;
+    --accent-sidebar-active: #a8a2f2;
 
-    /* Softened Semantic Status Colors */
-    --status-active: #5b7fdb;
-    --status-active-bg: rgba(91, 127, 219, 0.12);
-    --status-active-text: #8aa7e8;
-    --status-success: #48b584;
-    --status-success-bg: rgba(72, 181, 132, 0.12);
-    --status-success-text: #6fd3a4;
-    --status-warning: #d9a03f;
-    --status-warning-bg: rgba(217, 160, 63, 0.12);
-    --status-warning-text: #e2b35e;
-    --status-danger: #e06c5f;
-    --status-danger-bg: rgba(224, 108, 95, 0.12);
-    --status-danger-text: #ef8b7f;
+    /* Semantic Status Colors */
+    --status-active: #857dee;
+    --status-active-bg: rgba(133, 125, 238, 0.13);
+    --status-active-text: #b3acf7;
+    --status-success: #3fbf8f;
+    --status-success-bg: rgba(63, 191, 143, 0.12);
+    --status-success-text: #7ddfb7;
+    --status-warning: #d99a3f;
+    --status-warning-bg: rgba(217, 154, 63, 0.12);
+    --status-warning-text: #e5b565;
+    --status-danger: #e0685c;
+    --status-danger-bg: rgba(224, 104, 92, 0.12);
+    --status-danger-text: #ef8d84;
     --status-queued: #9aa1ad;
     --status-queued-bg: rgba(154, 161, 173, 0.12);
-    --status-queued-text: #b4bac4;
+    --status-queued-text: #b5bbc6;
 
-    /* Text Colors — graduated greys, no pure white (eye relief) */
-    --text-main: #e8eaee;
-    --text-muted: #a3a8b3;
-    --text-dim: #757b87;
-    --text-disabled: #757b87;
+    /* Text Colors — graduated greys, no pure white */
+    --text-main: #e7e8ef;
+    --text-muted: #9ba1af;
+    --text-dim: #6f7484;
+    --text-disabled: #6f7484;
 
-    /* Borders & Geometry */
-    --border-color: rgba(255, 255, 255, 0.07);
-    --border-hover: rgba(255, 255, 255, 0.14);
-    --border-active: rgba(91, 127, 219, 0.4);
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
+    /* Borders & Geometry — now with a soft, rounded shape language */
+    --border-color: rgba(255, 255, 255, 0.075);
+    --border-hover: rgba(255, 255, 255, 0.15);
+    --border-active: rgba(123, 116, 224, 0.45);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
 
     /* Component & Control Tokens */
     --btn-secondary-bg: rgba(255, 255, 255, 0.06);
@@ -62,22 +65,22 @@
     --btn-secondary-text: var(--text-main);
 
     --badge-bg: rgba(255, 255, 255, 0.06);
-    --progress-track: rgba(255, 255, 255, 0.07);
-    --scrollbar-thumb: rgba(255, 255, 255, 0.12);
-    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+    --progress-track: rgba(255, 255, 255, 0.08);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.13);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
 
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.22);
-    --shadow-modal: 0 16px 40px rgba(0, 0, 0, 0.45);
-    --modal-backdrop: rgba(10, 11, 13, 0.6);
+    --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.25);
+    --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.5);
+    --modal-backdrop: rgba(12, 10, 16, 0.6);
 
-    --kbd-bg: rgba(0, 0, 0, 0.25);
-    --kbd-text: rgba(232, 234, 238, 0.7);
+    --kbd-bg: rgba(0, 0, 0, 0.28);
+    --kbd-text: rgba(231, 232, 239, 0.72);
 
-    --metric-speed: #6aa7e0;
-    --metric-eta: #a3a8b3;
+    --metric-speed: #9fa4f5;
+    --metric-eta: #9ba1af;
 
-    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a3a8b3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e8eaee' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ba1af' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e7e8ef' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 
     --transition: 0.15s ease;
 }
@@ -85,74 +88,74 @@
 [data-theme="light"] {
     color-scheme: light;
 
-    /* Soft Ivory Light — calm paper-like surfaces, no pure white, no glare */
-    --bg-base: #f3f1ec;
-    --bg-sidebar: #eae7e0;
-    --bg-card: #faf9f6;
-    --bg-card-hover: #f1efe9;
-    --bg-input: #f4f2ec;
-    --bg-elevated: #faf9f6;
-    --bg-hover: rgba(65, 60, 50, 0.05);
+    /* Cool Mist Light — soft lavender-grey paper, calm and glare-free */
+    --bg-base: #f2f1f6;
+    --bg-sidebar: #e9e8f0;
+    --bg-card: #fbfbfd;
+    --bg-card-hover: #f1f0f7;
+    --bg-input: #f3f2f8;
+    --bg-elevated: #fbfbfd;
+    --bg-hover: rgba(58, 52, 96, 0.05);
 
-    /* Muted Indigo Accent (shared with dark — one calm brand color) */
-    --accent: #5b7fdb;
-    --accent-hover: #4a6dc7;
-    --accent-subtle: rgba(91, 127, 219, 0.12);
-    --accent-text: #f7f6f3;
-    --accent-sidebar-active: #4a6dc7;
+    /* Iris Accent — same calm violet as dark, one brand color */
+    --accent: #6159cc;
+    --accent-hover: #524aba;
+    --accent-subtle: rgba(97, 89, 204, 0.11);
+    --accent-text: #f7f6fb;
+    --accent-sidebar-active: #524aba;
 
-    /* Softened Semantic Status Colors */
-    --status-active: #5b7fdb;
-    --status-active-bg: rgba(91, 127, 219, 0.12);
-    --status-active-text: #4464b5;
-    --status-success: #3f8a5c;
-    --status-success-bg: rgba(63, 138, 92, 0.12);
-    --status-success-text: #356f4d;
-    --status-warning: #b07a2a;
-    --status-warning-bg: rgba(176, 122, 42, 0.12);
+    /* Semantic Status Colors */
+    --status-active: #6159cc;
+    --status-active-bg: rgba(97, 89, 204, 0.11);
+    --status-active-text: #4d45b3;
+    --status-success: #2e7d5b;
+    --status-success-bg: rgba(46, 125, 91, 0.12);
+    --status-success-text: #256a4c;
+    --status-warning: #a87426;
+    --status-warning-bg: rgba(168, 116, 38, 0.12);
     --status-warning-text: #8a5b15;
-    --status-danger: #bc4f47;
-    --status-danger-bg: rgba(188, 79, 71, 0.12);
-    --status-danger-text: #b44239;
-    --status-queued: #7a756a;
-    --status-queued-bg: rgba(122, 117, 106, 0.12);
-    --status-queued-text: #6a655a;
+    --status-danger: #b84a42;
+    --status-danger-bg: rgba(184, 74, 66, 0.12);
+    --status-danger-text: #ad4038;
+    --status-queued: #7c7786;
+    --status-queued-bg: rgba(124, 119, 134, 0.12);
+    --status-queued-text: #6b6675;
 
-    /* Text Colors (graduated warm greys — AA contrast, no near-black) */
-    --text-main: #37342e;
-    --text-muted: #777266;
-    --text-dim: #8a8578;
-    --text-disabled: #a39d90;
+    /* Text Colors (graduated cool greys — AA contrast, no near-black) */
+    --text-main: #33313d;
+    --text-muted: #6f6c7e;
+    --text-dim: #8b8899;
+    --text-disabled: #a9a6b5;
 
     /* Borders & Dividers */
-    --border-color: #d9d4c9;
-    --border-hover: #c8c2b4;
-    --border-active: rgba(91, 127, 219, 0.45);
+    --border-color: #d8d6e2;
+    --border-hover: #c6c3d5;
+    --border-active: rgba(97, 89, 204, 0.45);
 
     /* Component & Control Tokens */
-    --btn-secondary-bg: #f4f2ec;
-    --btn-secondary-hover: #ebe8e1;
-    --btn-secondary-border: #d9d4c9;
-    --btn-secondary-text: #4464b5;
+    --btn-secondary-bg: #f3f2f8;
+    --btn-secondary-hover: #eae8f2;
+    --btn-secondary-border: #d8d6e2;
+    --btn-secondary-text: #4d45b3;
 
-    --badge-bg: rgba(65, 60, 50, 0.07);
-    --progress-track: #ddd8cd;
-    --scrollbar-thumb: rgba(65, 60, 50, 0.18);
-    --scrollbar-thumb-hover: rgba(65, 60, 50, 0.30);
+    --badge-bg: rgba(58, 52, 96, 0.07);
+    --progress-track: #dedce8;
+    --scrollbar-thumb: rgba(58, 52, 96, 0.18);
+    --scrollbar-thumb-hover: rgba(58, 52, 96, 0.30);
 
     /* Subtle Low-Glare Shadows */
-    --shadow-card: 0 1px 3px rgba(65, 60, 50, 0.10);
-    --shadow-modal: 0 12px 32px rgba(65, 60, 50, 0.16);
-    --modal-backdrop: rgba(48, 45, 40, 0.42);
+    --shadow-card: 0 2px 5px rgba(58, 52, 96, 0.08);
+    --shadow-modal: 0 14px 36px rgba(58, 52, 96, 0.18);
+    --modal-backdrop: rgba(40, 36, 58, 0.45);
 
-    --kbd-bg: rgba(65, 60, 50, 0.08);
-    --kbd-text: #777266;
+    --kbd-bg: rgba(58, 52, 96, 0.08);
+    --kbd-text: #6f6c7e;
 
-    --metric-speed: #4464b5;
-    --metric-eta: #777266;
+    --metric-speed: #5d55c7;
+    --metric-eta: #6f6c7e;
 
-    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23777266' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2337342e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236f6c7e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-arrow-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2333313d' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 /* ==========================================================================
@@ -174,6 +177,8 @@ body {
     user-select: none;
     font-size: 13px;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 input, button, select, textarea {
@@ -188,10 +193,19 @@ input, button, select, textarea {
     outline-offset: 2px;
 }
 
+/* Global icon restyle — thinner, rounder stroke language ("Iris" icon set).
+   `svg *` is required: presentation attributes have specificity 0, so this
+   descendant selector overrides stroke-width baked into every inline icon. */
+svg,
+svg * {
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* 150ms ease transitions for theme switching and interactive elements */
 body,
 .app-layout,
-.topbar,
 .sidebar,
 .content-area,
 .content-toolbar,
@@ -235,25 +249,7 @@ body,
     background: var(--bg-base);
 }
 
-/* Topbar */
-.topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 56px;
-    padding: 0 18px;
-    background: var(--bg-sidebar);
-    border-bottom: 1px solid var(--border-color);
-    z-index: 10;
-    gap: 16px;
-}
-
-.topbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
+/* Brand identity — lives in the sidebar header */
 .brand-icon {
     width: 32px;
     height: 32px;
@@ -293,18 +289,19 @@ body,
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-left: auto;
 }
 
 .metric-pill {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 5px 12px;
-    border-radius: 16px;
+    padding: 4px 10px;
+    border-radius: 999px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     font-family: var(--font-mono);
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--text-main);
 }
 
@@ -352,7 +349,6 @@ body,
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     padding: 10px 10px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -360,12 +356,65 @@ body,
     transition: width 0.18s ease, padding 0.18s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
-/* Sidebar collapse header (toggle sits inside the sidebar, scrolls with it) */
+/* Sidebar header: brand identity + collapse toggle. This replaces the old
+   separate topbar brand row, so the top of the sidebar is never empty.
+   Layout: icon (+ toggle right) on line 1, full-width name + tagline below —
+   the name never has to fight the toggle for horizontal space. */
 .sidebar-header {
-    display: flex;
-    justify-content: flex-end;
-    padding: 2px 4px 6px;
-    margin-bottom: 6px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 2px 8px;
+    padding: 4px 4px 12px;
+    margin-bottom: 4px;
+}
+
+/* Promote the brand's children to header grid items */
+.sidebar-brand {
+    display: contents;
+}
+
+.sidebar-header .sidebar-toggle {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.sidebar-header .brand-icon {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.sidebar-header .brand-info {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.sidebar-header .brand-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-md);
+}
+
+.sidebar-header .brand-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.sidebar-brand .brand-title {
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-brand .brand-subtitle {
+    font-size: 10.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-toggle {
@@ -405,7 +454,20 @@ body,
 }
 
 .sidebar.collapsed .sidebar-header {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
+    gap: 4px;
+    padding-bottom: 10px;
+}
+
+.sidebar.collapsed .sidebar-brand {
+    display: flex;
+    justify-content: center;
+}
+
+.sidebar.collapsed .brand-info {
+    display: none;
 }
 
 .sidebar.collapsed .sidebar-section-title,
@@ -426,6 +488,7 @@ body,
 }
 
 .sidebar.collapsed .sidebar-footer {
+    margin-top: auto;
     padding: 8px 2px;
     justify-content: center;
 }
@@ -454,8 +517,8 @@ body,
     align-items: center;
     gap: 9px;
     width: 100%;
-    padding: 7px 10px;
-    border-radius: var(--radius-sm);
+    padding: 7px 11px;
+    border-radius: 999px;
     border: none;
     background: transparent;
     color: var(--text-muted);
@@ -534,6 +597,7 @@ body,
 
 /* Sidebar Footer */
 .sidebar-footer {
+    margin-top: auto;
     padding: 10px 12px;
     border-radius: var(--radius-sm);
     background: var(--bg-card);
@@ -584,11 +648,12 @@ body,
 .content-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 18px;
+    flex-wrap: wrap;
+    padding: 10px 18px;
     border-bottom: 1px solid var(--border-color);
-    gap: 14px;
-    background: var(--bg-base);
+    background: var(--bg-sidebar);
+    gap: 10px 14px;
+    flex-shrink: 0;
 }
 
 .search-box {
@@ -596,7 +661,8 @@ body,
     align-items: center;
     position: relative;
     flex: 1;
-    max-width: 420px;
+    max-width: 380px;
+    min-width: 140px;
 }
 
 .search-icon {
@@ -611,7 +677,7 @@ body,
 .search-box input {
     width: 100%;
     padding: 7px 30px 7px 32px;
-    border-radius: var(--radius-sm);
+    border-radius: 999px;
     border: 1px solid var(--border-color);
     background: var(--bg-card);
     color: var(--text-main);
@@ -888,13 +954,19 @@ body,
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition: var(--transition);
+    transition: var(--transition), transform 0.15s ease;
     box-shadow: var(--shadow-card);
 }
 
 .download-card:hover {
     background: var(--bg-card-hover);
     border-color: var(--border-hover);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    transform: translateY(-1px);
+}
+
+[data-theme="light"] .download-card:hover {
+    box-shadow: 0 4px 14px rgba(58, 52, 96, 0.14);
 }
 
 .download-card.card-active {
@@ -968,8 +1040,8 @@ body,
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -1015,16 +1087,16 @@ body,
 }
 
 .progress-track {
-    height: 4px;
+    height: 5px;
     background: var(--progress-track);
-    border-radius: 2px;
+    border-radius: 999px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
     background: var(--accent);
-    border-radius: 2px;
+    border-radius: 999px;
     transition: width 0.15s ease-out;
 }
 
@@ -1663,3 +1735,24 @@ body,
 .toast-success .toast-icon { color: var(--status-success); }
 .toast-error .toast-icon { color: var(--status-danger); }
 .toast-info .toast-icon { color: var(--accent); }
+
+/* Action button inside a rich toast (e.g. "Open file" on completion) */
+.toast-action {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-hover);
+    background: var(--btn-secondary-bg);
+    color: var(--text-main);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: var(--transition);
+}
+
+.toast-action:hover {
+    background: var(--accent-subtle);
+    border-color: var(--border-active);
+    color: var(--accent-sidebar-active);
+}
