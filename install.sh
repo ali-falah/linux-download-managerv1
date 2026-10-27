@@ -37,7 +37,10 @@ EXTENSION_ID="dhbkcopeagecbkoncdjefnjlcienhlpg"
 
 # ── Detect mode: local repo or remote curl|bash ──────────────────────────────
 # If this file lives inside a git/source checkout, reuse it. Otherwise clone
-# into a temporary directory.
+# into a temporary directory (removed again when the script exits).
+tmp_dir=""
+trap 'if [[ -n "${tmp_dir}" ]]; then rm -rf "${tmp_dir}"; fi' EXIT
+
 if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
   REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
@@ -112,8 +115,12 @@ ensure_system_libs() {
 # ── Build ─────────────────────────────────────────────────────────────────────
 build_binary() {
   log "Building release binary (this takes 1–2 minutes on first run)…"
-  cargo build --release --locked --manifest-path src-tauri/Cargo.toml >/dev/null \
-    || die "cargo build failed. Re-run with: cargo build --release --manifest-path src-tauri/Cargo.toml"
+  if ! cargo build --release --locked --manifest-path src-tauri/Cargo.toml >/dev/null; then
+    warn "Reproducible build failed (Cargo.lock out of sync — usually after a dependency bump)"
+    warn "Retrying without --locked and updating Cargo.lock as a side effect"
+    cargo build --release --manifest-path src-tauri/Cargo.toml >/dev/null \
+      || die "cargo build failed. Re-run with: cargo build --release --manifest-path src-tauri/Cargo.toml"
+  fi
 }
 
 # ── Install all the pieces ───────────────────────────────────────────────────

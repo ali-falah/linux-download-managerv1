@@ -56,7 +56,11 @@
                             <span class="badge" id="count-all">0</span>
                         </button>
                         <button class="nav-item" data-filter="in_progress" title="Downloading">
-                            <span class="status-dot status-dot-active"></span>
+                            <svg class="nav-icon nav-icon-downloading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 8v8"></path>
+                                <path d="m8 12 4 4 4-4"></path>
+                            </svg>
                             <span class="nav-label">Downloading</span>
                             <span class="badge badge-active" id="count-in_progress">0</span>
                         </button>
@@ -101,7 +105,7 @@
                     <div class="sidebar-section-title">Categories</div>
                     <nav class="sidebar-nav">
                         <button class="nav-item" data-category="video" title="Videos">
-                            <svg class="nav-icon cat-icon cat-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="nav-icon cat-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"></path>
                                 <rect x="2" y="6" width="14" height="12" rx="2" ry="2"></rect>
                             </svg>
@@ -109,7 +113,7 @@
                             <span class="badge" id="cat-video">0</span>
                         </button>
                         <button class="nav-item" data-category="audio" title="Music & Audio">
-                            <svg class="nav-icon cat-icon cat-audio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="nav-icon cat-audio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M2 10v3"></path>
                                 <path d="M6 6v11"></path>
                                 <path d="M10 3v18"></path>
@@ -121,7 +125,7 @@
                             <span class="badge" id="cat-audio">0</span>
                         </button>
                         <button class="nav-item" data-category="archive" title="Archives & Apps">
-                            <svg class="nav-icon cat-icon cat-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="nav-icon cat-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                                 <line x1="12" y1="22.08" x2="12" y2="11"></line>
@@ -130,7 +134,7 @@
                             <span class="badge" id="cat-archive">0</span>
                         </button>
                         <button class="nav-item" data-category="document" title="Documents">
-                            <svg class="nav-icon cat-icon cat-document" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="nav-icon cat-document" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
                                 <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
                                 <path d="M10 9H8"></path>
@@ -141,7 +145,7 @@
                             <span class="badge" id="cat-document">0</span>
                         </button>
                         <button class="nav-item" data-category="image" title="Images">
-                            <svg class="nav-icon cat-icon cat-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="nav-icon cat-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
                                 <circle cx="9" cy="9" r="2"></circle>
                                 <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
@@ -248,7 +252,7 @@
                             <span>New Download</span>
                             <span class="kbd-badge">Ctrl+N</span>
                         </button>
-                        <button id="btn-pause-all" class="btn btn-secondary btn-icon-text" title="Pause or resume all active downloads">
+                        <button id="btn-pause-all" class="btn btn-secondary" title="Pause or resume all active downloads">
                             <svg id="icon-pause-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="6" y="4" width="4" height="16" rx="1" ry="1"></rect>
                                 <rect x="14" y="4" width="4" height="16" rx="1" ry="1"></rect>
@@ -289,7 +293,9 @@
                         <div class="modal-subtitle">Paste a direct file URL, media link, or YouTube/Reddit stream</div>
                     </div>
                 </div>
-                <button id="modal-close-btn" class="btn btn-ghost btn-icon-only" title="Close (Esc)" aria-label="Close dialog">✕</button>
+                <button id="modal-close-btn" class="btn btn-ghost btn-icon-only" title="Close (Esc)" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
             </div>
 
             <div class="modal-body">
@@ -407,7 +413,9 @@
                         <div class="modal-subtitle">Configure application defaults and browser integration</div>
                     </div>
                 </div>
-                <button id="settings-close-btn" class="btn btn-ghost btn-icon-only" title="Close (Esc)" aria-label="Close settings">✕</button>
+                <button id="settings-close-btn" class="btn btn-ghost btn-icon-only" title="Close (Esc)" aria-label="Close settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
             </div>
 
             <div class="modal-body">
@@ -531,7 +539,9 @@
                         <div class="modal-subtitle">Review the download and choose where to save it</div>
                     </div>
                 </div>
-                <button id="browser-download-close" class="btn btn-ghost btn-icon-only" title="Cancel" aria-label="Cancel download dialog">✕</button>
+                <button id="browser-download-close" class="btn btn-ghost btn-icon-only" title="Cancel" aria-label="Cancel download dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -609,7 +619,9 @@
                         <div class="modal-subtitle">Choose whether to keep or remove the file from your computer</div>
                     </div>
                 </div>
-                <button id="delete-modal-close-btn" class="btn btn-ghost btn-icon-only" aria-label="Close dialog">✕</button>
+                <button id="delete-modal-close-btn" class="btn btn-ghost btn-icon-only" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
             </div>
             <div class="modal-body">
                 <p class="delete-prompt">Remove <strong id="delete-item-name">item</strong> from the downloads list?</p>
@@ -641,7 +653,9 @@
                         <div class="modal-subtitle">Remove completed and failed items from the list</div>
                     </div>
                 </div>
-                <button id="clear-finished-close-btn" class="btn btn-ghost btn-icon-only" aria-label="Close dialog">✕</button>
+                <button id="clear-finished-close-btn" class="btn btn-ghost btn-icon-only" aria-label="Close dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
             </div>
             <div class="modal-body">
                 <p class="delete-prompt">Remove <strong id="clear-finished-count">0</strong> finished download(s) from the list?</p>

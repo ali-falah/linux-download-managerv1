@@ -47,7 +47,7 @@
     /* Text Colors — graduated greys, no pure white */
     --text-main: #e7e8ef;
     --text-muted: #9ba1af;
-    --text-dim: #6f7484;
+    --text-dim: #7b8090;
     --text-disabled: #6f7484;
 
     /* Borders & Geometry — now with a soft, rounded shape language */
@@ -124,7 +124,7 @@
     /* Text Colors (graduated cool greys — AA contrast, no near-black) */
     --text-main: #33313d;
     --text-muted: #6f6c7e;
-    --text-dim: #8b8899;
+    --text-dim: #6c6780;
     --text-disabled: #a9a6b5;
 
     /* Borders & Dividers */
@@ -166,6 +166,13 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* Author display rules (e.g. .btn, .form-group, .metadata-card) must never
+   defeat the hidden attribute — without this, elements toggled via
+   element.hidden stay visible because display:flex overrides the UA rule. */
+[hidden] {
+    display: none !important;
 }
 
 body {
@@ -313,6 +320,11 @@ body,
     width: 13px;
     height: 13px;
     color: var(--accent);
+}
+
+.metric-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
 .speed-pulse {
@@ -546,6 +558,19 @@ body,
     flex-shrink: 0;
     opacity: 0.8;
 }
+
+/* "Downloading" nav icon carries the live status color */
+.nav-icon-downloading {
+    color: var(--status-active);
+    opacity: 1;
+}
+
+/* Category accent colors — shared by sidebar nav icons and card file icons */
+.cat-video { color: var(--status-active); }
+.cat-audio { color: var(--status-success); }
+.cat-archive { color: var(--status-warning); }
+.cat-document { color: var(--metric-speed); }
+.cat-image { color: var(--status-danger); }
 
 .nav-item.active .nav-icon {
     opacity: 1;
@@ -896,6 +921,15 @@ body,
     gap: 8px;
 }
 
+/* On very wide windows, center the list instead of stretching cards
+   edge-to-edge (2000px progress bars read poorly) */
+@media (min-width: 1400px) {
+    .downloads-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+}
+
 /* ==========================================================================
    Empty State
    ========================================================================== */
@@ -1132,6 +1166,14 @@ body,
     font-weight: 600;
 }
 
+.metric-size {
+    font-weight: 500;
+}
+
+.metric-percent {
+    color: var(--text-dim);
+}
+
 .metric-eta {
     color: var(--metric-eta);
     font-weight: 500;
@@ -1259,6 +1301,12 @@ body,
     border-radius: var(--radius-sm);
 }
 
+.btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .btn-cta {
     padding: 8px 18px;
     font-size: 13px;
@@ -1344,6 +1392,13 @@ body,
 .settings-tab.active {
     background: var(--bg-hover);
     color: var(--text-main);
+}
+
+/* Tab panels inside Extension settings; visibility is driven by [hidden] */
+.extension-settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .hidden-sites-list {
@@ -1674,6 +1729,11 @@ body,
     cursor: pointer;
 }
 
+/* Native checkbox blue clashes with the accent theme — tint both toggles */
+input[type="checkbox"] {
+    accent-color: var(--accent);
+}
+
 .range-value {
     font-family: var(--font-mono);
     font-weight: 600;
@@ -1703,10 +1763,12 @@ body,
 
 .toast-container {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    top: 64px;
+    left: 0;
+    right: 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 8px;
     z-index: 1000;
     pointer-events: none;

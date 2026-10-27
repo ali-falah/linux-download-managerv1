@@ -1,50 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!--
+    Concept D: download arrow striking into the light "card".
+    Above the card: white stem descending. Inside the card: silhouetted cut;
+    chevron tip lands on the card's bottom edge. Soft bar beneath receives it.
+  -->
   <defs>
-    <!-- Deep ocean → teal → mint gradient. Modern and distinctive. -->
-    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0B4A6F"/>
-      <stop offset="0.55" stop-color="#17A090"/>
-      <stop offset="1" stop-color="#4FDCB3"/>
+    <linearGradient id="bgD" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#2B2066"/>
+      <stop offset="0.55" stop-color="#5647D6"/>
+      <stop offset="1"    stop-color="#A29BF8"/>
     </linearGradient>
-
-    <!-- Glossy inner light for the arrow -->
-    <linearGradient id="arrow" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="cardD" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#E6FFF6"/>
+      <stop offset="1" stop-color="#E4E1FB"/>
+    </linearGradient>
+    <linearGradient id="glyphD" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DAD6FF"/>
     </linearGradient>
 
-    <!-- Soft shadow so the arrow sits on top convincingly -->
-    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
-      <feOffset dx="0" dy="6"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.28"/></feComponentTransfer>
+    <filter id="softShadowD" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="9"/>
+      <feOffset dx="0" dy="5"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="cardBlurD" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="13"/>
+    </filter>
+
+    <!-- card cut-out: white keep / black punch (stem + chevron head) -->
+    <mask id="arrowCutD">
+      <rect x="96" y="140" width="320" height="252" rx="46" fill="#FFFFFF"/>
+      <rect x="228" y="24" width="56" height="240" rx="28" fill="#000000"/>
+      <path fill="#000000" d="M 148 252 L 364 252 Q 388 252, 368 276 L 272 378 Q 256 396, 240 378 L 144 276 Q 124 252, 148 252 Z"/>
+    </mask>
+    <!-- arrow portion visible above the card only -->
+    <clipPath id="aboveCardD">
+      <rect x="0" y="0" width="512" height="140"/>
+    </clipPath>
   </defs>
 
-  <!-- Rounded-square background (22% corner radius, the modern native look) -->
-  <rect x="0" y="0" width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+  <rect x="0" y="0" width="512" height="512" rx="112" ry="112" fill="url(#bgD)"/>
 
-  <!-- Top-edge highlight for depth -->
-  <path
-    d="M 0 128 Q 256 10, 512 128 L 512 192 Q 256 96, 0 192 Z"
-    fill="#FFFFFF" fill-opacity="0.08"/>
+  <!-- card shadow (separate element so mask + filter never stack) -->
+  <rect x="96" y="146" width="320" height="252" rx="46" fill="#170F45" opacity="0.35" filter="url(#cardBlurD)"/>
 
-  <!-- Download glyph: stem + arrowhead + tray, all clean geometric shapes -->
-  <g fill="url(#arrow)" filter="url(#softShadow)">
-    <!-- Stem -->
-    <rect x="220" y="120" width="72" height="184" rx="18"/>
-    <!-- Arrowhead: pentagon pointing down with rounded corners -->
-    <path d="
-      M 152 260
-      L 360 260
-      Q 384 260, 366 282
-      L 276 386
-      Q 256 408, 236 386
-      L 146 282
-      Q 128 260, 152 260
-      Z"/>
-    <!-- Tray line -->
-    <rect x="128" y="416" width="256" height="32" rx="14"/>
+  <!-- light card with the arrow silhouette cut out -->
+  <rect x="96" y="140" width="320" height="252" rx="46" fill="url(#cardD)" mask="url(#arrowCutD)"/>
+
+  <!-- descending stem above the card -->
+  <g filter="url(#softShadowD)" clip-path="url(#aboveCardD)">
+    <rect x="228" y="24" width="56" height="120" fill="url(#glyphD)"/>
   </g>
+
+  <!-- landing bar beneath the card -->
+  <rect x="150" y="426" width="212" height="26" rx="13" fill="#FFFFFF" fill-opacity="0.5"/>
 </svg>
